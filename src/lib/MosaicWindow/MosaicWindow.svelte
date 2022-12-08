@@ -2,11 +2,9 @@
 
 </script>
 
-<div>
-    <article>
+<article>
 
-    </article>
-</div>
+</article>
 
 <style>
 

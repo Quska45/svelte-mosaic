@@ -1,18 +1,26 @@
 import type {
     TMosaicDirection,
     TMosaicNode
-} from '../types/MosaicNode';
+} from '../types/TMosaicNode';
 
-// export interface IMosaicNode {
-//     direction: TMosaicDirection;
-//     first: TMosaicNode;
-//     second: TMosaicNode;
-//     splitPercentage: number;
-// };
+export interface IMosaicNode {
+};
 
-export class MosaicNode {
+export class MosaicNode implements IMosaicNode{
     direction: TMosaicDirection;
     first: TMosaicNode;
     second: TMosaicNode;
     splitPercentage: number;
+
+    constructor(
+        direction: TMosaicDirection,
+        first: TMosaicNode,
+        second: TMosaicNode,
+        splitPercentage: number
+    ){
+        this.direction = direction;
+        this.first = first;
+        this.second = second;
+        this.splitPercentage = splitPercentage;
+    }
 };

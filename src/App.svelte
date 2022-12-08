@@ -1,20 +1,21 @@
 <script>
 
   import Mosaic from "./lib/Mosaic/Mosaic.svelte";
-  let items = [
-        {id: 1, name: "item1"},
-        {id: 2, name: "item2"},
-        {id: 3, name: "item3"},
-        {id: 4, name: "item4"}
-  ];
+  import Header from "./lib/Header/Header.svelte";
 
 </script>
 
-<main>
+<main class="svelte-mosaic-example-app">
 
-  <Mosaic items={items}></Mosaic>
+  <Header></Header>
+  <Mosaic></Mosaic>
   
 </main>
 
 <style>
+  html, body, #app, .svelte-mosaic-example-app {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
 </style>

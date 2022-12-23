@@ -1,26 +1,59 @@
 <script lang="ts">
-    import MosaicWithoutDragDropContext from "../MosaicWithoutDragDropContext/MosaicWithoutDragDropContext.svelte";
+    import {
+        SplitEvent,
+        WindowEvent
+    } from './Event'
     import MosaicWindow from "../MosaicWindow/MosaicWindow.svelte";
     import Split from "../Split/Split.svelte";
-    import {
-        MosaicNode
-    } from "../MosaicNode/MosaicNode"
+    import { MosaicNodeStore } from "./MosaicStateStore";
     import type {
         IExampleAppState
     } from '../../App'
+    import { MosaicPieceManager } from '../MosaicNode/MosaicPieceManager';
     
-
     export let exampleAppState: IExampleAppState;
-    let tree = exampleAppState.currentNode;
-    // let mosaicNode = new MosaicNode(  );
+
+    MosaicNodeStore.set( exampleAppState.currentNode );
+
+    let mosaicPieceManager = new MosaicPieceManager<number>();
+    mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+    console.log(mosaicPieceManager.mosaicWindows)
+    console.log(mosaicPieceManager.splits)
 </script>
 
 <div class="mosaic">
-    {JSON.stringify(exampleAppState)}
+    {#each mosaicPieceManager.mosaicWindows as mosaicWindow}
+        <MosaicWindow
+            nodeId = { mosaicWindow.id }
+            parentNodeId = { mosaicWindow.parentNodeId }
+            direction = { mosaicWindow.direction }
+            inset = { mosaicWindow.splitPercentage.inset }
+            tree = { mosaicWindow.tree }
+            parentTree = { mosaicWindow.parentTree }
+            isFirst = { mosaicWindow.isFirst }
+
+            splits = { mosaicPieceManager.splits }
+            mosaicWindows = { mosaicPieceManager.mosaicWindows }
+        ></MosaicWindow>
+    {/each}
+    {#each mosaicPieceManager.splits as split}
+        <Split
+            nodeId = { split.id }
+            parentNodeId = { split.parentNodeId }
+            direction= { split.direction }
+            inset = { split.splitPercentage.inset }
+            tree = { split.tree }
+            parentTree = { split.parentTree }
+
+            splits={ mosaicPieceManager.splits }
+            mosaicWindows={ mosaicPieceManager.mosaicWindows }
+        ></Split>
+    {/each}
 </div>
 
 <style>
     .mosaic {
-        height: calc(100% - 50px);
+        height: calc(100% - 60px);
+        position: relative;
     }
 </style>

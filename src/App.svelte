@@ -5,17 +5,30 @@
   import type {
     IExampleAppState
   } from './App';
+  import type { IInset } from "./lib/Common/Inset";
+
 
   let exampleAppState: IExampleAppState = {
     currentNode: {
+      id: 'master1',
+      title: 'window1',
+      parentNodeId: '',
       direction: 'row',
       first: 1,
       second: {
+        id: 'master2',
+        title: 'window2',
+        parentNodeId: 'master1',
         direction: 'column',
         first: 2,
         second: 3,
+        splitPercentage: {
+          percentage: 50,
+        }
       },
-      splitPercentage: 40,
+      splitPercentage: {
+        percentage: 40
+      },
     },
     currentTheme: 'Blueprint',
   };

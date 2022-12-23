@@ -13,6 +13,8 @@
      */
     "allowJs": true,
     "checkJs": true,
+    // 파일명 변경시 캐시 남지 않도록 변경
+    "forceConsistentCasingInFileNames": false,
     "isolatedModules": true
   },
   "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],

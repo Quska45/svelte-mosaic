@@ -1,35 +1,44 @@
 import type {
     TMosaicKey
 } from '../types/types';
+import { v4 as uuid } from 'uuid';
+import type { Inset, TInset } from '../Common/Inset';
+import { MosaicPiece } from '../Common/MosaicPiece';
 
-export type TMosaicDirection = 'row' | 'column';
+export type TMosaicDirection = 'row' | 'column' | ''; // 최상위 노드는 방향이 없음
 
-export type TMosaicNode<T extends TMosaicKey> = IMosaicParent<T> | T;
-
-export interface IMosaicParent<T extends TMosaicKey> {
-    direction: TMosaicDirection;
-    first: TMosaicNode<T>;
-    second: TMosaicNode<T>;
-    splitPercentage?: number;
+/**
+ * splitPercentage는 first에 대한 값만 가지고 있다.
+ * second는 first를 뺀 나머지와 같은 값을 가지게 된다.
+*/
+export class SplitPercentage {
+    percentage?: number;
+    inset?: TInset; // 상위노드에서 받은 현재 노드의 Inset
+    firstInset?: TInset;
+    secondInset?: TInset;
 };
 
-export class MosaicNode<T extends TMosaicKey> implements IMosaicParent<T>{
+// mosaic에 사용할 초기 데이터에 사용되는 타입과 인터페이스
+export type TMosaicNode<T extends TMosaicKey> = IMosaicParent<T> | MosaicNode<T> | T;
+
+export interface IMosaicParent<T extends TMosaicKey> {
+    id: string;
+    title: string;
     direction: TMosaicDirection;
+    parentNodeId: string | null; // null인 경우 마스터 노드
     first: TMosaicNode<T>;
     second: TMosaicNode<T>;
-    splitPercentage?: number;
+    splitPercentage: SplitPercentage;
+};
 
-    constructor(
-        direction: TMosaicDirection,
-        first: TMosaicNode<T>,
-        second: TMosaicNode<T>,
-        splitPercentage?: number
-    ){
-        this.direction = direction;
-        this.first = first;
-        this.second = second;
-        this.splitPercentage = splitPercentage ? splitPercentage : 50;
-    }
+// 실제 윈도우를 그리는 용도로 사용할 클래스
+export class MosaicNode<T extends TMosaicKey> extends MosaicPiece<T>{
+    title: string;
+    isFirst: boolean;
+
+    constructor() {
+        super();
+    };
 
     /**
      * Returns `true` if `node` is a MosaicParent
@@ -39,29 +48,7 @@ export class MosaicNode<T extends TMosaicKey> implements IMosaicParent<T>{
      * @param node
      * @returns {boolean}
      */
-    isParent<T extends TMosaicKey>( node: TMosaicNode<T> ): node is IMosaicParent<T> {
-        return (node as IMosaicParent<T>).direction != null;
+    static isParent<T extends TMosaicKey>( node: TMosaicNode<T> ): node is IMosaicParent<T> {
+        return (node as IMosaicParent<T>).id != null;
     };
-
-    /**
-     * Gets all leaves of `tree`
-     * 재귀 함수. first / second에 IMosaicNode가 아닌 number만 남을 때 까지 계속 돈다.
-     * 제네릭을 사용해서 정의한 type을 통해 인자에 해당하는 tree의 타입을 유동적으로 정할 수 있도록 했다.
-     * @param tree
-     * @returns {T[]}
-     */
-    getLeaves<T extends TMosaicKey>( tree: TMosaicNode<T> | null ): T[] {
-        if( tree == null ){
-            return [];
-        } else if( this.isParent( tree ) ){
-            return this.getLeaves( tree.first ).concat( this.getLeaves( tree.second ) );
-        } else {
-            return [ tree ];
-        }
-    };
-
-    static nodeToArray( node: TMosaicNode<number> ): []{
-        
-        return [];
-    }
 };

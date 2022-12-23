@@ -1,4 +1,5 @@
-import type { IMosaicNode } from '../MosaicNode/MosaicNode'
+import type { TMosaicNode } from '../MosaicNode/MosaicNode'
+import type { TMosaicKey } from '../types/types';
 
 export interface IMosaicBaseProps {
     isUnControlled(): boolean;
@@ -29,8 +30,12 @@ export class MosaicUncontrolledProps extends MosaicBaseProps implements IMosaicU
 
 export type TMosaicProps = IMosaicControlledProps | IMosaicUncontrolledProps;
 
-export interface MosaicState {
-    currentNode: IMosaicNode | null;
-    lastInitialValue: IMosaicNode | null;
+export interface MosaicState<T extends TMosaicKey> {
+    currentNode: TMosaicNode<T> | null;
+    lastInitialValue: TMosaicNode<T> | null;
     mosaicId: string;
+}
+
+export const renderer = {
+    
 }

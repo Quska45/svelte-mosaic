@@ -8,12 +8,13 @@ export class MosaicPieceManager<T extends TMosaicKey> {
     mosaicWindows: MosaicNode<T>[] = [];
     splits: Split<T>[] = [];
     event = {
-        split : ( tree: TMosaicNode<T>, isFirst: boolean ) => {
+        split : ( tree: TMosaicNode<T>, parentTree: TMosaicNode<T>, isFirst: boolean ) => {
             let treeNode = ( tree as IMosaicParent<T> );
+            let parentTreeNode = ( parentTree as IMosaicParent<T> );
             let node: TMosaicNode<T> = {
                 id: uuid(),
                 title: 'newWindow',
-                parentNodeId: treeNode.id,
+                parentNodeId: parentTreeNode.id,
                 direction: 'row',
                 first: ( 0 as TMosaicNode<T> ),
                 second: ( 0 as TMosaicNode<T> ),
@@ -21,9 +22,15 @@ export class MosaicPieceManager<T extends TMosaicKey> {
                     percentage: 50
                 }
             };
-            isFirst ? treeNode.first = node : treeNode.second = node;
+            isFirst ? parentTreeNode.first = node : parentTreeNode.second = node;
 
-
+            let test = this.getMosaicNodeObjByTree( tree, parentTree, true );
+            let test2 = this.getMosaicNodeObjByTree( tree, parentTree, true );
+            // this.mosaicWindows.push( this.getMosaicNodeObjByTree( tree, parentTree, false ) );
+            // this.mosaicWindows.push( this.getMosaicNodeObjByTree( tree, parentTree, false ) );
+            console.log(this.mosaicWindows);
+            this.mosaicWindows = [...this.mosaicWindows, test, test2];
+            console.log(this.mosaicWindows);
         }
     };
 
@@ -75,6 +82,22 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         this.splits.push( split );
         this.makeWindowsAndSplitsBySearchTreeRecursively( tree.first, tree, true );
         this.makeWindowsAndSplitsBySearchTreeRecursively( tree.second, tree, false );
+    };
+
+    getTreeByNodeId( tree: TMosaicNode<T>, nodeId ){
+        let treeNode = ( tree as IMosaicParent<T> );
+        if( this.isParent( tree ) ){
+            return null; 
+        };
+
+        if( treeNode.id = nodeId ){
+            return tree;
+        };
+
+        let targetTree1= this.getTreeByNodeId( tree, nodeId );
+        let targetTree2= this.getTreeByNodeId( tree, nodeId );
+
+        return targetTree1 ? targetTree1 : targetTree2;
     };
 
     getMosaicNodeObjByTree<T extends TMosaicKey>( tree: TMosaicNode<T>, parentTree: TMosaicNode<T>, isFirst: boolean ): MosaicNode<T>{

@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { v4 as uuid } from 'uuid';
+    import { writable } from 'svelte/store'
     import {
         SplitEvent,
         WindowEvent
@@ -10,6 +12,8 @@
         IExampleAppState
     } from '../../App'
     import { MosaicPieceManager } from '../MosaicNode/MosaicPieceManager';
+    import type { IMosaicParent, TMosaicNode } from '../MosaicNode/MosaicNode';
+    import type { TMosaicKey } from '../types/types';
     
     export let exampleAppState: IExampleAppState;
 
@@ -19,11 +23,66 @@
     mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
     console.log(mosaicPieceManager.mosaicWindows)
     console.log(mosaicPieceManager.splits)
+
+    const event = {
+        window:{
+            split: function<T extends TMosaicKey>( tree: TMosaicNode<T>, parentTree: TMosaicNode<T>, isFirst: boolean ){
+                let treeNode = ( tree as IMosaicParent<T> );
+                let parentTreeNode = ( parentTree as IMosaicParent<T> );
+                let node: TMosaicNode<T> = {
+                    id: uuid(),
+                    title: 'newWindow',
+                    parentNodeId: parentTreeNode.id,
+                    direction: 'row',
+                    first: ( 0 as TMosaicNode<T> ),
+                    second: ( 0 as TMosaicNode<T> ),
+                    splitPercentage: {
+                        percentage: 50
+                    }
+                };
+
+                tree = node;
+
+                let secondNode= mosaicPieceManager.getMosaicNodeObjByTree( node, parentTree, false );
+                mosaicPieceManager.mosaicWindows = [...mosaicPieceManager.mosaicWindows, secondNode];
+            },
+        },
+        split:{}
+    }
+
+    function testCallback(){
+        // $mosaicWindows[0].splitPercentage.inset.right = 30;
+        // let test = [...$mosaicWindows]
+        // $mosaicWindows = [...$mosaicWindows, test[0]];
+        // console.log($mosaicWindows);
+        
+        // $mosaicWindows.push( $mosaicWindows[0] );
+        // $mosaicWindows = [$mosaicWindows[0]];
+        // console.log($mosaicWindows);
+
+        let node: TMosaicNode<number> = {
+            id: uuid(),
+            title: 'newWindow',
+            parentNodeId: 'parentTreeNode.id',
+            direction: 'row',
+            first: ( 0 as TMosaicNode<number> ),
+            second: ( 0 as TMosaicNode<number> ),
+            splitPercentage: {
+                percentage: 50
+            }
+        };
+
+        let secondNode= mosaicPieceManager.getMosaicNodeObjByTree( node, exampleAppState.currentNode, false );
+        // $mosaicWindows = [...$mosaicWindows, secondNode];
+    }
+
+
 </script>
 
 <div class="mosaic">
     {#each mosaicPieceManager.mosaicWindows as mosaicWindow}
         <MosaicWindow
+            mosaicWindow = { mosaicWindow }
             nodeId = { mosaicWindow.id }
             parentNodeId = { mosaicWindow.parentNodeId }
             direction = { mosaicWindow.direction }
@@ -31,9 +90,10 @@
             tree = { mosaicWindow.tree }
             parentTree = { mosaicWindow.parentTree }
             isFirst = { mosaicWindow.isFirst }
+            testCallback = {testCallback}
+            event = { event.window }
 
-            splits = { mosaicPieceManager.splits }
-            mosaicWindows = { mosaicPieceManager.mosaicWindows }
+            mosaicPieceManager = { mosaicPieceManager }
         ></MosaicWindow>
     {/each}
     {#each mosaicPieceManager.splits as split}

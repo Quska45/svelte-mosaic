@@ -86,7 +86,7 @@ export class MosaicPieceManager<T extends TMosaicKey> {
 
     getTreeByNodeId( tree: TMosaicNode<T>, nodeId ){
         let treeNode = ( tree as IMosaicParent<T> );
-        if( this.isParent( tree ) ){
+        if( !this.isParent( tree ) ){
             return null; 
         };
 
@@ -94,8 +94,8 @@ export class MosaicPieceManager<T extends TMosaicKey> {
             return tree;
         };
 
-        let targetTree1= this.getTreeByNodeId( tree, nodeId );
-        let targetTree2= this.getTreeByNodeId( tree, nodeId );
+        let targetTree1= this.getTreeByNodeId( treeNode.first, nodeId );
+        let targetTree2= this.getTreeByNodeId( treeNode.second, nodeId );
 
         return targetTree1 ? targetTree1 : targetTree2;
     };

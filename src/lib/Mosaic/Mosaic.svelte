@@ -14,6 +14,7 @@
     import { MosaicPieceManager } from '../MosaicNode/MosaicPieceManager';
     import type { IMosaicParent, TMosaicNode } from '../MosaicNode/MosaicNode';
     import type { TMosaicKey } from '../types/types';
+    import { Inset } from '../Common/Inset';
     
     export let exampleAppState: IExampleAppState;
 
@@ -23,6 +24,7 @@
     mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
     console.log(mosaicPieceManager.mosaicWindows)
     console.log(mosaicPieceManager.splits)
+    console.log(exampleAppState.currentNode)
 
     const event = {
         window:{
@@ -37,15 +39,29 @@
                     first: ( 0 as TMosaicNode<T> ),
                     second: ( 0 as TMosaicNode<T> ),
                     splitPercentage: {
-                        percentage: 50
+                        percentage: 50,
                     }
                 };
 
-                tree = node;
+                let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, parentTreeNode.id );
+                let currentTreeNode = ( currentTree as IMosaicParent<T> );
+                isFirst ? currentTreeNode.first = node : currentTreeNode.second = node;
 
-                let secondNode= mosaicPieceManager.getMosaicNodeObjByTree( node, parentTree, false );
+                node.splitPercentage.inset = currentTreeNode.splitPercentage.inset;
+
+                let firstAndSecondInset = Inset.getFirstAndSecondInsetByTree( node );
+                console.log('firstAndSecondInset');
+                console.log(firstAndSecondInset);
+                currentTreeNode.splitPercentage.firstInset = firstAndSecondInset.first;
+                currentTreeNode.splitPercentage.secondInset = firstAndSecondInset.second;
+
+                let secondNode = mosaicPieceManager.getMosaicNodeObjByTree( node, parentTree, false );
                 //  배열을 참조해도록 해줘야만 화면이 재 렌더링 된다. 왜 이러는지 모르겠음.
                 mosaicPieceManager.mosaicWindows = [...mosaicPieceManager.mosaicWindows, secondNode];
+
+                console.log(exampleAppState.currentNode);
+                // console.log(tree);
+                console.log(secondNode);
             },
         },
         split:{}

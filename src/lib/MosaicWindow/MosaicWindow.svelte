@@ -25,15 +25,6 @@
     event.preventDefault();
     return;
   }
-
-  // const Event = {
-  //   split: function(){
-  //     console.log( `${nodeId} : window split event dispatch` );
-  //     // console.log( mosaicPieceManager.mosaicWindows );
-  //     mosaicPieceManager.event.split( tree, parentTree, isFirst );
-  //     // console.log( mosaicPieceManager.mosaicWindows );
-  //   }
-  // }
 </script>
 
 <div class="mosaic-window" draggable="true" style="inset: { `${mosaicWindow.splitPercentage.inset.top}% ${mosaicWindow.splitPercentage.inset.right}% ${mosaicWindow.splitPercentage.inset.bottom}% ${inset.left}%` };">

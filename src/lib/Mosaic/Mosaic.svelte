@@ -44,6 +44,7 @@
                 tree = node;
 
                 let secondNode= mosaicPieceManager.getMosaicNodeObjByTree( node, parentTree, false );
+                //  배열을 참조해도록 해줘야만 화면이 재 렌더링 된다. 왜 이러는지 모르겠음.
                 mosaicPieceManager.mosaicWindows = [...mosaicPieceManager.mosaicWindows, secondNode];
             },
         },

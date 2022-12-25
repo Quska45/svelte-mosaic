@@ -47,21 +47,11 @@
                 let currentTreeNode = ( currentTree as IMosaicParent<T> );
                 isFirst ? currentTreeNode.first = node : currentTreeNode.second = node;
 
-                node.splitPercentage.inset = currentTreeNode.splitPercentage.inset;
-
-                let firstAndSecondInset = Inset.getFirstAndSecondInsetByTree( node );
-                console.log('firstAndSecondInset');
-                console.log(firstAndSecondInset);
-                currentTreeNode.splitPercentage.firstInset = firstAndSecondInset.first;
-                currentTreeNode.splitPercentage.secondInset = firstAndSecondInset.second;
-
-                let secondNode = mosaicPieceManager.getMosaicNodeObjByTree( node, parentTree, false );
-                //  배열을 참조해도록 해줘야만 화면이 재 렌더링 된다. 왜 이러는지 모르겠음.
-                mosaicPieceManager.mosaicWindows = [...mosaicPieceManager.mosaicWindows, secondNode];
-
+                mosaicPieceManager.mosaicWindows = [];
+                mosaicPieceManager.splits = [];
+                mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
                 console.log(exampleAppState.currentNode);
-                // console.log(tree);
-                console.log(secondNode);
+                console.log(mosaicPieceManager.mosaicWindows);
             },
         },
         split:{}

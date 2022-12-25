@@ -90,7 +90,7 @@ export class MosaicPieceManager<T extends TMosaicKey> {
             return null; 
         };
 
-        if( treeNode.id = nodeId ){
+        if( treeNode.id == nodeId ){
             return tree;
         };
 

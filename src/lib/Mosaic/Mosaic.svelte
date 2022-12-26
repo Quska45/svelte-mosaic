@@ -19,6 +19,7 @@
     export let exampleAppState: IExampleAppState;
 
     MosaicNodeStore.set( exampleAppState.currentNode );
+    
 
     let mosaicPieceManager = new MosaicPieceManager<number>();
     mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );

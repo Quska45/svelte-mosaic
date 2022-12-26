@@ -19,23 +19,18 @@
   export let event;
 
   export let testCallback;
-
-  function callback( event ){
-    inset.right += 5;
-    event.preventDefault();
-    return;
-  }
 </script>
 
 <div class="mosaic-window" draggable="true" style="inset: { `${mosaicWindow.splitPercentage.inset.top}% ${mosaicWindow.splitPercentage.inset.right}% ${mosaicWindow.splitPercentage.inset.bottom}% ${inset.left}%` };">
   <div class="mosaic-preview">
     <div class="mosaic-window-toolbar">
       <div class="mosaic-window-title"></div>
-      <button class="mosaic-title-button mosaic-split" on:click={()=>event.split( tree, parentTree, isFirst, mosaicWindow )}>나누기</button>
-      <button class="mosaic-title-button mosaic-delete" on:click={testCallback}>삭제</button>
+      <button class="mosaic-title-button mosaic-split" on:click={()=>event.split( parentTree, isFirst )}>나누기</button>
+      <button class="mosaic-title-button mosaic-delete" on:click={()=>event.delete( nodeId, isFirst )}>삭제</button>
     </div>
     <div class="mosaic-window-body">
-      <h4>title</h4>
+      <h4>${JSON.parse(JSON.stringify(parentTree)).parentNodeId}</h4>
+      <h4>${JSON.parse(JSON.stringify(parentTree)).id}</h4>
     </div>
   </div>
 </div>

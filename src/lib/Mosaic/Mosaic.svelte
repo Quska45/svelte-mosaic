@@ -28,8 +28,7 @@
 
     const event = {
         window:{
-            split: function<T extends TMosaicKey>( tree: TMosaicNode<T>, parentTree: TMosaicNode<T>, isFirst: boolean ){
-                let treeNode = ( tree as IMosaicParent<T> );
+            split: function<T extends TMosaicKey>( parentTree: TMosaicNode<T>, isFirst: boolean ){
                 let parentTreeNode = ( parentTree as IMosaicParent<T> );
                 let node: TMosaicNode<T> = {
                     id: uuid(),
@@ -42,7 +41,7 @@
                         percentage: 50,
                     }
                 };
-
+                
                 let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, parentTreeNode.id );
                 let currentTreeNode = ( currentTree as IMosaicParent<T> );
                 isFirst ? currentTreeNode.first = node : currentTreeNode.second = node;
@@ -53,8 +52,23 @@
                 console.log(exampleAppState.currentNode);
                 console.log(mosaicPieceManager.mosaicWindows);
             },
+            delete: function<T extends TMosaicKey>( parentNodeId: string, isFirst: boolean ){
+                let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, parentNodeId );
+                let currentTreeNode = ( currentTree as IMosaicParent<T> );
+
+                mosaicPieceManager.getParentTreeByNode( exampleAppState.currentNode, currentTreeNode )
+
+                mosaicPieceManager.mosaicWindows = [];
+                mosaicPieceManager.splits = [];
+                mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+            }
         },
-        split:{}
+        split:{
+            positionChange: function( e ){
+                console.log( e );
+                console.log( (e.clientX / document.body.offsetWidth * 100).toFixed() );
+            }
+        }
     }
 
     function testCallback(){

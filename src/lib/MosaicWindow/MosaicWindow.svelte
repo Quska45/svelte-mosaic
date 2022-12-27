@@ -21,16 +21,24 @@
   export let testCallback;
 </script>
 
-<div class="mosaic-window" draggable="true" style="inset: { `${mosaicWindow.splitPercentage.inset.top}% ${mosaicWindow.splitPercentage.inset.right}% ${mosaicWindow.splitPercentage.inset.bottom}% ${inset.left}%` };">
+<div class="mosaic-window" style="inset: { `${mosaicWindow.splitPercentage.inset.top}% ${mosaicWindow.splitPercentage.inset.right}% ${mosaicWindow.splitPercentage.inset.bottom}% ${inset.left}%` };">
   <div class="mosaic-preview">
-    <div class="mosaic-window-toolbar">
-      <div class="mosaic-window-title"></div>
-      <button class="mosaic-title-button mosaic-split" on:click={()=>event.split( parentTree, isFirst )}>나누기</button>
-      <button class="mosaic-title-button mosaic-delete" on:click={()=>event.delete( nodeId, isFirst )}>삭제</button>
+    <div 
+      class="mosaic-window-toolbar" 
+      draggable="true"
+      on:dragstart={( e )=>event.dragStart( e, mosaicWindow )}
+      
+      >
+      <div class="mosaic-window-title">
+        {JSON.parse(JSON.stringify(parentTree)).title} / {isFirst}
+      </div>
+      <div>
+        <button class="mosaic-title-button mosaic-split" on:click={()=>event.split( parentTree, isFirst )}>나누기</button>
+        <button class="mosaic-title-button mosaic-delete" on:click={()=>event.delete( nodeId, isFirst )}>삭제</button>
+      </div>
     </div>
     <div class="mosaic-window-body">
-      <h4>${JSON.parse(JSON.stringify(parentTree)).parentNodeId}</h4>
-      <h4>${JSON.parse(JSON.stringify(parentTree)).id}</h4>
+      <h4>{JSON.parse(JSON.stringify(parentTree)).parentNodeId} / {JSON.parse(JSON.stringify(parentTree)).id}</h4>
     </div>
   </div>
 </div>
@@ -44,7 +52,7 @@
   .mosaic-window-toolbar {
     border-bottom: 1px solid red;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     cursor: move;
   }
 </style>

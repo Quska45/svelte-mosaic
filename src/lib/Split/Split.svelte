@@ -19,11 +19,15 @@
     export let splits: Split<number>[];
     export let tree: TMosaicNode<number>;
     export let parentTree: TMosaicNode<number>;
+
+    export let event;
+    export let split: Split<number>;
 </script>
 
 <div 
     class="mosaic-split {direction}" 
-    style="inset: { `${inset.top}% ${inset.right}% ${inset.bottom}% ${inset.left}%` };"
+    style="inset: { `${split.splitPercentage.inset.top}% ${split.splitPercentage.inset.right}% ${split.splitPercentage.inset.bottom}% ${split.splitPercentage.inset.left}%` };"
+    on:mousedown = {( e ) => event.positionChange( e, split )}
 >
 </div>
 

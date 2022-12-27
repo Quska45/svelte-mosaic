@@ -58,6 +58,10 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         this.makeWindowsAndSplitsBySearchTreeRecursively( tree.second, tree, false );
     };
 
+    setTreeAndPiecesSplitPercentageByTree(){
+        
+    };
+
     getTreeByNodeId( tree: TMosaicNode<T>, nodeId ){
         let treeNode = ( tree as IMosaicParent<T> );
         if( !this.isParent( tree ) ){
@@ -74,7 +78,7 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         return targetTree1 ? targetTree1 : targetTree2;
     };
 
-    getParentTreeByNode( tree: TMosaicNode<T>, node: IMosaicParent<T> ){
+    changeParentTreeByNode( tree: TMosaicNode<T>, node: IMosaicParent<T> ){
         if( !this.isParent( tree ) ){
             return null; 
         };
@@ -85,12 +89,12 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         };
         
         if( ( tree.second as IMosaicParent<T>).id == node.id ){
-            tree.second = ( 0 as TMosaicNode<T> );
+            tree.second = node.first;
             return;
         };
         
-        this.getParentTreeByNode( tree.first, node );
-        this.getParentTreeByNode( tree.second, node );
+        this.changeParentTreeByNode( tree.first, node );
+        this.changeParentTreeByNode( tree.second, node );
     };
 
     getMosaicNodeObjByTree<T extends TMosaicKey>( tree: TMosaicNode<T>, parentTree: TMosaicNode<T>, isFirst: boolean ): MosaicNode<T>{

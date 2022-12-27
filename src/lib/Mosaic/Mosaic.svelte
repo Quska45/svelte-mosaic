@@ -7,6 +7,7 @@
     } from './Event'
     import MosaicWindow from "../MosaicWindow/MosaicWindow.svelte";
     import Split from "../Split/Split.svelte";
+    import type { Split as SplitTs } from "../Split/Split";
     import { MosaicNodeStore } from "./MosaicStateStore";
     import type {
         IExampleAppState
@@ -19,7 +20,7 @@
     export let exampleAppState: IExampleAppState;
 
     MosaicNodeStore.set( exampleAppState.currentNode );
-    
+
 
     let mosaicPieceManager = new MosaicPieceManager<number>();
     mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
@@ -50,24 +51,64 @@
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
-                console.log(exampleAppState.currentNode);
-                console.log(mosaicPieceManager.mosaicWindows);
             },
-            delete: function<T extends TMosaicKey>( parentNodeId: string, isFirst: boolean ){
+            delete: function<T extends TMosaicKey>( parentNodeId: string ){
                 let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, parentNodeId );
                 let currentTreeNode = ( currentTree as IMosaicParent<T> );
 
-                mosaicPieceManager.getParentTreeByNode( exampleAppState.currentNode, currentTreeNode )
+                mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode )
 
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+            },
+            dragStart: function<T extends TMosaicKey>( e, mosaicWindow ){
+                let currentMosaicIndex = mosaicPieceManager.mosaicWindows.findIndex(function( _mosaicWindow ){
+                    return (_mosaicWindow.id == mosaicWindow.id) && (_mosaicWindow.isFirst == mosaicWindow.isFirst)
+                });
+
+                mosaicPieceManager.mosaicWindows[currentMosaicIndex].splitPercentage.inset.left = 30;
+            },
+            drop: function( e ){
+                console.log(e.dataTransfer);
+                e.target.parentNode.parentNode.style.display = 'block';
+            },
+            dragOver: function( e ){
+                console.log(e.dataTransfer);
+                e.target.parentNode.parentNode.style.display = 'block';
+            },
+            dragEnd: function( e ){
+                console.log('dragend');
+                e.target.parentNode.parentNode.style.display = 'block';
             }
         },
         split:{
-            positionChange: function( e ){
-                console.log( e );
-                console.log( (e.clientX / document.body.offsetWidth * 100).toFixed() );
+            positionChange: function<T extends TMosaicKey>( e, split: SplitTs<T> ){
+                function mousemove(mousemoveEvent){
+                    let mousePosition = 0;
+                    if( split.direction == 'row' ){
+                        // mousePosition = parseInt((mousemoveEvent.clientX / document.body.offsetWidth * 100).toFixed(3));
+                        mousePosition = mousemoveEvent.clientX / document.body.offsetWidth * 100;
+                    } else {
+                        // mousePosition = parseInt((mousemoveEvent.clientY / document.body.offsetHeight * 100).toFixed(3));
+                        mousePosition = mousemoveEvent.clientY / document.body.offsetHeight * 100;
+                    }
+                    let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, split.id );
+                    let currentTreeNode = ( currentTree as IMosaicParent<T> );
+                    
+                    split.splitPercentage.percentage = mousePosition;
+                    currentTreeNode.splitPercentage.percentage = mousePosition;
+
+                    mosaicPieceManager.mosaicWindows = [];
+                    mosaicPieceManager.splits = [];
+                    mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+                };
+
+                window.addEventListener('mousemove', mousemove);
+
+                window.addEventListener('mouseup', (mouseupEvent) => {
+                    window.removeEventListener('mousemove', mousemove)
+                });
             }
         }
     }
@@ -104,7 +145,6 @@
 <div class="mosaic">
     {#each mosaicPieceManager.mosaicWindows as mosaicWindow}
         <MosaicWindow
-            mosaicWindow = { mosaicWindow }
             nodeId = { mosaicWindow.id }
             parentNodeId = { mosaicWindow.parentNodeId }
             direction = { mosaicWindow.direction }
@@ -114,7 +154,8 @@
             isFirst = { mosaicWindow.isFirst }
             testCallback = {testCallback}
             event = { event.window }
-
+        
+            mosaicWindow = { mosaicWindow }
             mosaicPieceManager = { mosaicPieceManager }
         ></MosaicWindow>
     {/each}
@@ -126,7 +167,9 @@
             inset = { split.splitPercentage.inset }
             tree = { split.tree }
             parentTree = { split.parentTree }
-
+            event = { event.split }
+            
+            split = { split }
             splits={ mosaicPieceManager.splits }
             mosaicWindows={ mosaicPieceManager.mosaicWindows }
         ></Split>

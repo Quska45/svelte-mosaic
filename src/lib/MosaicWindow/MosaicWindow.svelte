@@ -18,16 +18,24 @@
   export let mosaicPieceManager: MosaicPieceManager<number>;
   export let event;
 
-  export let testCallback;
 </script>
 
-<div class="mosaic-window" style="inset: { `${mosaicWindow.splitPercentage.inset.top}% ${mosaicWindow.splitPercentage.inset.right}% ${mosaicWindow.splitPercentage.inset.bottom}% ${inset.left}%` };">
+<div 
+  class="mosaic-window" 
+  style="
+    inset: { `${mosaicWindow.splitPercentage.inset.top}% ${mosaicWindow.splitPercentage.inset.right}% ${mosaicWindow.splitPercentage.inset.bottom}% ${inset.left}%` };
+    display: { `${mosaicWindow.isDisplay}` }
+  "
+  on:dragover={( e ) => event.dragOver( e )}
+  on:dragend={( e ) => event.dragEnd( e )}
+  on:dragenter={( e ) => event.dragEnter( e )}
+  on:drop={( e ) => event.drop( e )}
+  >
   <div class="mosaic-preview">
     <div 
       class="mosaic-window-toolbar" 
       draggable="true"
-      on:dragstart={( e )=>event.dragStart( e, mosaicWindow )}
-      
+      on:dragstart={( e ) => event.dragStart( e, mosaicWindow )}
       >
       <div class="mosaic-window-title">
         {JSON.parse(JSON.stringify(parentTree)).title} / {isFirst}

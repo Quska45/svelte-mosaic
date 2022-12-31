@@ -26,7 +26,10 @@
 
 <div 
     class="mosaic-split {direction}" 
-    style="inset: { `${split.splitPercentage.inset.top}% ${split.splitPercentage.inset.right}% ${split.splitPercentage.inset.bottom}% ${split.splitPercentage.inset.left}%` };"
+    style="
+        inset: { `${split.splitPercentage.inset.top}% ${split.splitPercentage.inset.right}% ${split.splitPercentage.inset.bottom}% ${split.splitPercentage.inset.left}%` };
+        display: { `${split.isDisplay}` }
+    "
     on:mousedown = {( e ) => event.positionChange( e, split )}
 >
 </div>

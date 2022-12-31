@@ -6,7 +6,7 @@ export class MosaicPiece<T extends TMosaicKey> {
     id: string;
     parentNodeId: string | null;
     inset: Inset<T>;
-    isDisplay: boolean;
+    isDisplay: string;
     onDraging: boolean;
     direction: TMosaicDirection;
     splitPercentage: SplitPercentage;

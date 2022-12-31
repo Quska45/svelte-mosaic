@@ -58,8 +58,77 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         this.makeWindowsAndSplitsBySearchTreeRecursively( tree.second, tree, false );
     };
 
-    setTreeAndPiecesSplitPercentageByTree(){
+    setTreeAndPiecesSplitPercentageByTree<T extends TMosaicKey>( tree: TMosaicNode<T>, direction: TMosaicDirection, splitPercentageSubtract: number, parentTree?:TMosaicNode<T>, isFirst? :boolean ){
+        let treeNode = ( tree as IMosaicParent<T> );
+
+        if( !this.isParent( tree ) ){
+            return;
+        };
+
+        if( parentTree ){
+            let parentTreeNode = ( parentTree as IMosaicParent<T> );
+            if( isFirst ){
+                treeNode.splitPercentage.inset = parentTreeNode.splitPercentage.firstInset;
+            } else {
+                treeNode.splitPercentage.inset = parentTreeNode.splitPercentage.secondInset;
+            }
+        }
+
+        if( direction == treeNode.direction ){
+            treeNode.splitPercentage.percentage = treeNode.splitPercentage.percentage - splitPercentageSubtract;
+        };
         
+        let firstAndSecondInset = Inset.getFirstAndSecondInsetByTree( tree );
+        treeNode.splitPercentage.firstInset = firstAndSecondInset.first;
+        treeNode.splitPercentage.secondInset = firstAndSecondInset.second;
+
+        let currentSplitIndex = this.splits.findIndex(function( split ){
+            return split.id == treeNode.id;
+        });
+        let currentSplit = this.splits[ currentSplitIndex ];
+        currentSplit.splitPercentage.inset = treeNode.splitPercentage.secondInset;
+        
+        // first 인 window 찾아옴
+        let currentMosaicIndexFirst = this.mosaicWindows.findIndex(function( mosaicWindow ){
+            return (mosaicWindow.id == treeNode.id) && mosaicWindow.isFirst;
+        });
+
+        // second 인 window 찾아옴
+        let currentMosaicIndexSecond = this.mosaicWindows.findIndex(function( mosaicWindow ){
+            return (mosaicWindow.id == treeNode.id) && !mosaicWindow.isFirst;
+        });
+
+        // let firstWindow = mosaicPieceManager.mosaicWindows[ currentMosaicIndexFirst ];
+        // let secondWindow = mosaicPieceManager.mosaicWindows[ currentMosaicIndexSecond ];
+        let firstWindow = this.getFisrstMosaicWindowById( treeNode.id );
+        let secondWindow = this.getSecondMosaicWindowById( treeNode.id );
+
+        // firstWindow
+        if( firstWindow ){
+            if( direction == firstWindow.direction ){
+                firstWindow.splitPercentage.percentage += splitPercentageSubtract;
+            };
+            firstWindow.splitPercentage.inset = treeNode.splitPercentage.firstInset;
+        }
+
+        // secondWindow
+        if( secondWindow ){
+            if( direction == secondWindow.direction ){
+                secondWindow.splitPercentage.percentage += splitPercentageSubtract;
+            };
+            // secondWindow.splitPercentage.inset = treeNode.splitPercentage.secondInset;
+            // secondWindow.splitPercentage.inset.top = treeNode.splitPercentage.secondInset.top;
+            // secondWindow.splitPercentage.inset.right = treeNode.splitPercentage.secondInset.right;
+            // secondWindow.splitPercentage.inset.bottom = treeNode.splitPercentage.secondInset.bottom;
+            // secondWindow.splitPercentage.inset.left = treeNode.splitPercentage.secondInset.left;
+            this.mosaicWindows[ currentMosaicIndexSecond ].splitPercentage.inset = treeNode.splitPercentage.secondInset;
+        }
+
+        console.log( treeNode.splitPercentage.firstInset );
+        console.log( treeNode.splitPercentage.secondInset );
+
+        this.setTreeAndPiecesSplitPercentageByTree( treeNode.first, direction, splitPercentageSubtract, tree, true );
+        this.setTreeAndPiecesSplitPercentageByTree( treeNode.second, direction, splitPercentageSubtract, tree, false );
     };
 
     getTreeByNodeId( tree: TMosaicNode<T>, nodeId ){
@@ -106,7 +175,7 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         mosaicNode.title = parentTreeNode.title;
         mosaicNode.parentNodeId = parentTreeNode.parentNodeId;
         mosaicNode.direction = parentTreeNode.direction;
-        mosaicNode.isDisplay = true;
+        mosaicNode.isDisplay = 'block';
         mosaicNode.onDraging = false;
         mosaicNode.isFirst = isFirst;
         mosaicNode.tree = tree;
@@ -128,7 +197,7 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         split.id = treeNode.id;
         split.parentNodeId = parentTreeNode.id;
         split.direction = treeNode.direction;
-        split.isDisplay = true;
+        split.isDisplay = 'block';
         split.onDraging = false;
         split.tree = tree;
         split.parentTree = parentTree;
@@ -137,5 +206,21 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         split.splitPercentage.inset = treeNode.splitPercentage.secondInset;
 
         return split;
+    };
+
+    getFisrstMosaicWindowById( id: string ){
+        let currentMosaicIndexFirst = this.mosaicWindows.findIndex(function( mosaicWindow ){
+            return (mosaicWindow.id == id) && mosaicWindow.isFirst;
+        });
+
+        return this.mosaicWindows[ currentMosaicIndexFirst ];
+    };
+
+    getSecondMosaicWindowById( id: string ){
+        let currentMosaicIndexSecond = this.mosaicWindows.findIndex(function( mosaicWindow ){
+            return (mosaicWindow.id == id) && !mosaicWindow.isFirst;
+        });
+
+        return this.mosaicWindows[ currentMosaicIndexSecond ];
     };
 }

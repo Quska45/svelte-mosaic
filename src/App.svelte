@@ -5,8 +5,6 @@
   import type {
     IExampleAppState
   } from './App';
-  import type { IInset } from "./lib/Common/Inset";
-
 
   let exampleAppState: IExampleAppState = {
     currentNode: {
@@ -32,7 +30,6 @@
     },
     currentTheme: 'Blueprint',
   };
-
 </script>
 
 <main class="svelte-mosaic-example-app">
@@ -48,5 +45,9 @@
     height: 100%;
     margin: 0;
     overflow: hidden;
+  }
+  body {
+    user-select: none;
+    -webkit-user-select: none;
   }
 </style>

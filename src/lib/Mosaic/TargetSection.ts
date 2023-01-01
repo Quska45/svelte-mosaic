@@ -55,10 +55,13 @@ export class SectionList extends Section {
         let divideWidth = parseFloat(( substractWidth / 3 ).toFixed(3));
 
         if( this.x1 < x && ( this.x1 + divideWidth ) > x ){
+            console.log( 'left' );
             return this.left;
         } else if( ( this.x1 + divideWidth ) < x && ( this.x1 + (divideWidth*2) ) > x ){
+            console.log( 'middle' );
             return this.middle;
         } else {
+            console.log( 'right' );
             return this.right;
         }
     };
@@ -91,10 +94,13 @@ export class TargetSection extends Section {
         let divideHeight = parseFloat(( substractHeight / 3 ).toFixed(3));
 
         if( this.y1 < y && this.y1 + divideHeight > y ){
+            console.log( 'top' );
             return this.top;
         } else if( this.y1 + divideHeight < y && this.y1 + (divideHeight * 2) > y ){
+            console.log( 'center' );
             return  this.center;
         } else {
+            console.log( 'bottom' );
             return this.bottom;
         };
     };

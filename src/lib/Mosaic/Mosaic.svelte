@@ -144,6 +144,8 @@
                 shadow.style.display = 'block';
                 shadow.style.zIndex = '10';
                 shadow.style.inset = `${currentMosaicWindowDom.style.inset}`;
+
+                dragValue.dragEnterDom = currentMosaicWindowDom;
             },
             dragEnd: function( e ){
                 console.log('drag end event');
@@ -240,23 +242,38 @@
                 insetArr.pop();
                 console.log(insetArr);
 
+                console.log(dragValue.dragEnterDom.dataset);
+                let isFirstCurrentDom = dragValue.dragEnterDom.dataset.isFirst;
+
                 if( shadowSection.type == 'TopHalf' ){
                     insetArr[ 2 ] 
                         = (
                             parseInt(insetArr[ 2 ]) + ((100 - parseInt(insetArr[ 2 ])) / 2)
                         ).toString();
                 } else if( shadowSection.type == 'RightHalf' ){
-                    insetArr[ 3 ] = (
-                        parseInt(insetArr[ 3 ]) + (100 - parseInt(insetArr[ 1 ])) / 2
-                    ).toString();
+                    if( isFirstCurrentDom ){
+                        insetArr[ 3 ] = (
+                            parseInt(insetArr[ 3 ]) + ((100 - parseInt(insetArr[ 1 ])) / 2)
+                        ).toString();
+                    } else {
+                        insetArr[ 3 ] = (
+                            parseInt(insetArr[ 3 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
+                        ).toString();
+                    };
                 } else if( shadowSection.type == 'BottomHalf' ){
                     insetArr[ 0 ] = (
-                        parseInt(insetArr[ 0 ]) + (100 - parseInt(insetArr[ 0 ])) / 2
+                        parseInt(insetArr[ 0 ]) + ((100 - parseInt(insetArr[ 0 ])) / 2)
                     ).toString();
                 } else if( shadowSection.type == 'LeftHalf' ){
-                    insetArr[ 1 ] = (
-                        parseInt(insetArr[ 1 ]) + (100 - parseInt(insetArr[ 3 ])) / 2
-                    ).toString();
+                    if( isFirstCurrentDom ){
+                        insetArr[ 1 ] = (
+                            parseInt(insetArr[ 1 ]) + ((100 - parseInt(insetArr[ 1 ])) / 2)
+                        ).toString();
+                    } else {
+                        insetArr[ 1 ] = (
+                            parseInt(insetArr[ 1 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
+                        ).toString();
+                    }
                 } else {
                     insetArr[ 0 ] = '0';
                     insetArr[ 1 ] = '100';
@@ -363,6 +380,7 @@
             tree: null,
             isFirst: null
         },
+        dragEnterDom: null,
         targetSection: null,
         selectedDom: null,
         shadowSectionType: null

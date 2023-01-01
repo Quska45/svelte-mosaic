@@ -5,6 +5,7 @@
 <div 
     id="drop-target-container"
     on:dragover={ ( e ) => event.dragOver( e ) }
+    on:dragenter={ ( e ) => event.dragEnter( e ) }
 >
 
 </div>

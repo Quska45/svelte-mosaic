@@ -18,7 +18,7 @@
     import { Inset } from '../Common/Inset';
     import DropTargetContainer from '../DropTargetContainer/DropTargetContainer.svelte';
     import { compute_rest_props } from 'svelte/internal';
-    import { TargetSection } from './TargetSection';
+    import { Section, TargetSection } from './TargetSection';
     
     export let exampleAppState: IExampleAppState;
 
@@ -97,6 +97,9 @@
                 // 드래그가 시작된 시점의 정보들을 가지고 있는다.
                 dragValue.beforeDrag.splitPercentage = parentTreeNode.splitPercentage.percentage;
                 dragValue.beforeDrag.tree = currentWindow.parentTree;
+                dragValue.beforeDrag.isFirst = mosaicWindow.isFirst;
+                dragValue.beforeDrag.id = mosaicWindow.id;
+                dragValue.beforeDrag.parentId = mosaicWindow.parentNodeId;
                 
                 // 하위 window split의 resize 로직
                 dragFunction.setPiecesSplitPercentageByTree( currentTree, e.target.parentElement.parentElement, currentWindow.isFirst );
@@ -114,15 +117,36 @@
                 console.log('drop event');
                 console.log(JSON.parse(e.dataTransfer.getData( 'mosaicWindow' )));
             },
-            dragOver: function( e ){
+            dragOver: function( e: DragEvent ){
                 console.log('drag over event');
+            },
+            dragEnter: function( e ){
+                console.log('drag enter event');
+                let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
+                dragValue.selectedDom.style.zIndex = -1;
+                
+                let dataset = currentMosaicWindowDom.dataset;
+                if( 
+                    dataset.nodeId == dragValue.beforeDrag.id
+                    && dataset.parentNodeId == dragValue.beforeDrag.parentId
+                    && dataset.isFirst == dragValue.beforeDrag.isFirst.toString()
+                ){
+                    return;
+                };
+                
+                e.dataTransfer.dropEffect = 'move';
+                let shadow = document.getElementById( 'drop-target-container' );
+                let boundingRect = currentMosaicWindowDom.getBoundingClientRect();
+                let targetSection = new TargetSection( boundingRect.left, boundingRect.top, boundingRect.right, boundingRect.bottom, 'TargetSection' );
+                targetSection.setSectionList();
+                dragValue.targetSection = targetSection;
 
-
+                shadow.style.display = 'block';
+                shadow.style.zIndex = '10';
+                shadow.style.inset = `${currentMosaicWindowDom.style.inset}`;
             },
             dragEnd: function( e ){
                 console.log('drag end event');
-                // let $dropTargetContainer = document.getElementById( 'drop-target-container' );
-                // let boundingRect = $dropTargetContainer.getBoundingClientRect();
                 let shadow = document.getElementById( 'drop-target-container' );
 
                 dragValue.selectedDom.style.zIndex = 0;
@@ -133,34 +157,8 @@
 
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
-                console.log(exampleAppState.currentNode);
-                console.log(dragValue.beforeDrag.tree);
                 dragValue.beforeDrag.tree.splitPercentage.percentage = dragValue.beforeDrag.splitPercentage;
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
-            },
-            dragEnter: function( e ){
-                console.log('drag enter event');
-                e.dataTransfer.dropEffect = 'move';
-                let shadow = document.getElementById( 'drop-target-container' );
-                let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
-                let boundingRect = currentMosaicWindowDom.getBoundingClientRect();
-                console.log(currentMosaicWindowDom);
-                // console.log(currentMosaicWindowDom.clientWidth);
-                // console.log(currentMosaicWindowDom.clientHeight);
-                // console.log(currentMosaicWindowDom.clientX);
-                // console.log(currentMosaicWindowDom.clientY);
-                // let targetSection = new TargetSection( currentMosaicWindowDom.clientLeft, currentMosaicWindowDom.clientTop, currentMosaicWindowDom.clientWidth, currentMosaicWindowDom.clientHeight );
-                let targetSection = new TargetSection( boundingRect.left, boundingRect.top, boundingRect.right, boundingRect.bottom );
-                targetSection.setSectionList();
-                dragValue.targetSection = targetSection;
-                // dragValue.targetSection.setSectionLists();
-                console.log(dragValue.targetSection);
-
-                dragValue.selectedDom.style.zIndex = -1;
-                shadow.style.display = 'block';
-                shadow.style.zIndex = '10';
-                shadow.style.inset = `${currentMosaicWindowDom.style.inset}`;
-                // console.log(document.elementsFromPoint(e.clientX, e.clientY));
             }
         },
         split:{
@@ -194,6 +192,82 @@
                 e.dataTransfer.dropEffect = 'move';
                 e.preventDefault();
                 console.log( 'shadow dragover event' );
+                return;
+                
+                let bodyWidth = document.body.clientWidth;
+                let headerHeight = document.getElementsByClassName( 'svelte-mosaic-header' )[0].clientHeight;
+                let bodyHeight = document.body.clientHeight - headerHeight;
+                let shadow = document.getElementById( 'drop-target-container' );
+                let shadowSection: Section = dragValue.targetSection.getShadowSectionByXY( e.clientX, e.clientY );
+                let insetArr = shadow.style.inset.split('%');
+                insetArr.pop();
+                console.log(insetArr);
+
+                if( shadowSection.type == 'TopHalf' ){
+                    insetArr[ 2 ] 
+                        = (
+                            parseInt(insetArr[ 2 ]) + ((100 - parseInt(insetArr[ 2 ])) / 2)
+                        ).toString();
+                } else if( shadowSection.type == 'RightHalf' ){
+                    insetArr[ 3 ] = (
+                        parseInt(insetArr[ 3 ]) + (100 - parseInt(insetArr[ 1 ])) / 2
+                    ).toString();
+                } else if( shadowSection.type == 'BottomHalf' ){
+                    insetArr[ 0 ] = (
+                        parseInt(insetArr[ 0 ]) + (100 - parseInt(insetArr[ 0 ])) / 2
+                    ).toString();
+                } else if( shadowSection.type == 'LeftHalf' ){
+                    insetArr[ 1 ] = (
+                        parseInt(insetArr[ 1 ]) + (100 - parseInt(insetArr[ 3 ])) / 2
+                    ).toString();
+                } else {
+                    
+                }
+
+                let insetStr = `${insetArr[0]}% ${insetArr[1]}% ${insetArr[2]}% ${insetArr[3]}% `;
+                shadow.style.inset = insetStr;
+
+                console.log(insetArr);
+            },
+            dragEnter( e ){
+                console.log( 'shadow dragEnter' );
+                let bodyWidth = document.body.clientWidth;
+                let headerHeight = document.getElementsByClassName( 'svelte-mosaic-header' )[0].clientHeight;
+                let bodyHeight = document.body.clientHeight - headerHeight;
+                let shadow = document.getElementById( 'drop-target-container' );
+                let shadowSection: Section = dragValue.targetSection.getShadowSectionByXY( e.clientX, e.clientY );
+                let insetArr = shadow.style.inset.split('%');
+                insetArr.pop();
+                console.log(insetArr);
+
+                if( shadowSection.type == 'TopHalf' ){
+                    insetArr[ 2 ] 
+                        = (
+                            parseInt(insetArr[ 2 ]) + ((100 - parseInt(insetArr[ 2 ])) / 2)
+                        ).toString();
+                } else if( shadowSection.type == 'RightHalf' ){
+                    insetArr[ 3 ] = (
+                        parseInt(insetArr[ 3 ]) + (100 - parseInt(insetArr[ 1 ])) / 2
+                    ).toString();
+                } else if( shadowSection.type == 'BottomHalf' ){
+                    insetArr[ 0 ] = (
+                        parseInt(insetArr[ 0 ]) + (100 - parseInt(insetArr[ 0 ])) / 2
+                    ).toString();
+                } else if( shadowSection.type == 'LeftHalf' ){
+                    insetArr[ 1 ] = (
+                        parseInt(insetArr[ 1 ]) + (100 - parseInt(insetArr[ 3 ])) / 2
+                    ).toString();
+                } else {
+                    insetArr[ 0 ] = '0';
+                    insetArr[ 1 ] = '100';
+                    insetArr[ 2 ] = '100';
+                    insetArr[ 3 ] = '0';
+                }
+
+                let insetStr = `${insetArr[0]}% ${insetArr[1]}% ${insetArr[2]}% ${insetArr[3]}% `;
+                shadow.style.inset = insetStr;
+
+                console.log(insetArr);
             }
         }
     }
@@ -284,11 +358,14 @@
     let dragValue = {
         beforeDrag: {
             id: '',
+            parentId: '',
             splitPercentage: null,
-            tree: null
+            tree: null,
+            isFirst: null
         },
         targetSection: null,
-        selectedDom: null
+        selectedDom: null,
+        shadowSectionType: null
     };
 
     let dragFunction = {

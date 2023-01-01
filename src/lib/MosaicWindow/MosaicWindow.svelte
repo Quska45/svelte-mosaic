@@ -30,6 +30,9 @@
   on:dragend={( e ) => event.dragEnd( e )}
   on:dragenter={( e ) => event.dragEnter( e )}
   on:drop={( e ) => event.drop( e )}
+  data-node-id = { mosaicWindow.id }
+  data-parent-node-id = { mosaicWindow.parentNodeId }
+  data-is-first = { mosaicWindow.isFirst }
   >
   <div class="mosaic-preview">
     <div 

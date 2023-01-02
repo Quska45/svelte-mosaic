@@ -75,12 +75,9 @@
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
             },
             mouseDown: function<T extends TMosaicKey>( e, mosaicWindow: MosaicNode<T> ){
-                console.log( 'mouseUp event@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@' );
             },
             mouseUp: function( e ){
-                console.log( 'mouseUp event@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@' );
                 let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
-                console.log( currentMosaicWindowDom );
             },
             /**
              * dragStart 이벤트는 기존의 돔을 조정하는 역할만 한다.
@@ -89,16 +86,13 @@
              * dragover가 실행되면서 shadow가 실제 dnd 역할을 수행하기 전에 필요한 것만 처리함. 
             */
             dragStart: function<T extends TMosaicKey>( e, mosaicWindow: MosaicNode<T> ){
-                console.log('dragStart event');
                 let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, mosaicWindow.id );
-                let currentTreeNode = ( currentTree as IMosaicParent<T> );
                 let currentWindowIndex = mosaicWindow.isFirst ? dragFunction.getFisrstMosaicWindowIndexById( mosaicWindow.id ) : dragFunction.getSecondMosaicWindowIndexById( mosaicWindow.id );
                 let currentWindow = mosaicPieceManager.mosaicWindows[ currentWindowIndex ];
 
                 // e.target.parentElement.parentElement.style.opacity = 0;
 
                 let parentTreeNode = ( currentWindow.parentTree as IMosaicParent<T> );
-                console.log(parentTreeNode);
 
                 // 드래그가 시작된 시점의 정보들을 가지고 있는다.
                 dragValue.beforeDrag.splitPercentage = parentTreeNode.splitPercentage.percentage;
@@ -114,24 +108,20 @@
                 let currentSplitIndex = dragFunction.getSplitIndexById( mosaicWindow.id );
                 mosaicPieceManager.splits[ currentSplitIndex ].isDisplay = 'none';
 
-                dragValue.selectedDom = e.target.parentElement.parentElement;
+                dragValue.beforeDrag.selectedDom = e.target.parentElement.parentElement;
 
                 e.dataTransfer.effectAllowed = 'move';
                 e.dataTransfer.setData( 'mosaicWindow', JSON.stringify(mosaicWindow) );
             },
             drop: function( e ){
-                console.log('drop event');
-                console.log(JSON.parse(e.dataTransfer.getData( 'mosaicWindow' )));
             },
-            dragOver: function( e: DragEvent ){
-                console.log('drag over event');
-            },
-            dragEnter: function( e ){
-                console.log('drag enter event');
+            // enter, over가 완전히 동일한 로직을 가지게 됨. 이거 개선 해야함
+            dragOver: function( e ){
                 let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
-                dragValue.selectedDom.style.zIndex = -1;
+                dragValue.beforeDrag.selectedDom.style.zIndex = -1;
                 
                 let dataset = currentMosaicWindowDom.dataset;
+                // 드래그를 시작했을 때 선택됨 dom에 dragenter 되면 종료
                 if( 
                     dataset.nodeId == dragValue.beforeDrag.id
                     && dataset.parentNodeId == dragValue.beforeDrag.parentId
@@ -143,24 +133,62 @@
                 e.dataTransfer.dropEffect = 'move';
                 let shadow = document.getElementById( 'drop-target-container' );
                 let boundingRect = currentMosaicWindowDom.getBoundingClientRect();
+                console.log(boundingRect);
                 let targetSection = new TargetSection( boundingRect.left, boundingRect.top, boundingRect.right, boundingRect.bottom, 'TargetSection' );
                 targetSection.setSectionList();
                 dragValue.targetSection = targetSection;
+
+                let shadowSection: Section = dragValue.targetSection.getShadowSectionByXY( e.clientX, e.clientY );
+                if( shadowSection.type == 'empty' ){
+                    return;
+                }
 
                 shadow.style.display = 'block';
                 shadow.style.zIndex = '10';
                 shadow.style.inset = `${currentMosaicWindowDom.style.inset}`;
 
-                dragValue.dragEnterDom = currentMosaicWindowDom;
+                dragValue.afterDrag.dom = currentMosaicWindowDom;
+
+            },
+            dragEnter: function( e ){
+                let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
+                dragValue.beforeDrag.selectedDom.style.zIndex = -1;
+                
+                let dataset = currentMosaicWindowDom.dataset;
+                // 드래그를 시작했을 때 선택됨 dom에 dragenter 되면 종료
+                if( 
+                    dataset.nodeId == dragValue.beforeDrag.id
+                    && dataset.parentNodeId == dragValue.beforeDrag.parentId
+                    && dataset.isFirst == dragValue.beforeDrag.isFirst.toString()
+                ){
+                    return;
+                };
+
+                e.dataTransfer.dropEffect = 'move';
+                let shadow = document.getElementById( 'drop-target-container' );
+                let boundingRect = currentMosaicWindowDom.getBoundingClientRect();
+                console.log(boundingRect);
+                let targetSection = new TargetSection( boundingRect.left, boundingRect.top, boundingRect.right, boundingRect.bottom, 'TargetSection' );
+                targetSection.setSectionList();
+                dragValue.targetSection = targetSection;
+
+                let shadowSection: Section = dragValue.targetSection.getShadowSectionByXY( e.clientX, e.clientY );
+                if( shadowSection.type == 'empty' ){
+                    return;
+                }
+
+                shadow.style.display = 'block';
+                shadow.style.zIndex = '10';
+                shadow.style.inset = `${currentMosaicWindowDom.style.inset}`;
+
+                dragValue.afterDrag.dom = currentMosaicWindowDom;
             },
             dragEnd: function<T extends TMosaicKey>( e ){
                 let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
-                console.log(currentMosaicWindowDom);
-                console.log('drag end event');
                 let shadow = document.getElementById( 'drop-target-container' );
 
-                dragValue.selectedDom.style.zIndex = 0;
-                dragValue.selectedDom.style.opacity = 1;
+                dragValue.beforeDrag.selectedDom.style.zIndex = 0;
+                dragValue.beforeDrag.selectedDom.style.opacity = 1;
                 
                 shadow.style.display = 'none';
                 shadow.style.zIndex = '-1';
@@ -186,12 +214,6 @@
                 // 돔을 원상태로 복구 하는 코드
                 dragValue.beforeDrag.tree.splitPercentage.percentage = dragValue.beforeDrag.splitPercentage;
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
-
-
-                console.log(dragValue.selectedDom.dataset);
-                console.log(dragValue.dragEnterDom.dataset)
-                console.log(dragValue.shadowSectionType);
-                console.log(dragValue);
             }
         },
         split:{
@@ -207,7 +229,6 @@
                     }
                     let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, split.id );
                     let currentTreeNode = ( currentTree as IMosaicParent<T> );
-                    console.log(mousePosition);
                     let splitPercentageSubtract = currentTreeNode.splitPercentage.percentage - mousePosition;
                     
                     setTreeAndPiecesSplitPercentageByTree( currentTree, currentTreeNode.direction, splitPercentageSubtract );
@@ -224,46 +245,18 @@
             dragOver: function( e ){
                 e.dataTransfer.dropEffect = 'move';
                 e.preventDefault();
-                console.log( 'shadow dragover event' );
             },
             dragEnter( e ){
-                console.log( 'shadow dragEnter' );
-                let bodyWidth = document.body.clientWidth;
-                let headerHeight = document.getElementsByClassName( 'svelte-mosaic-header' )[0].clientHeight;
-                let bodyHeight = document.body.clientHeight - headerHeight;
                 let shadow = document.getElementById( 'drop-target-container' );
                 let shadowSection: Section = dragValue.targetSection.getShadowSectionByXY( e.clientX, e.clientY );
-                let insetArr = shadow.style.inset.split('%');
-                insetArr.pop();
-
-                if( shadowSection.type == 'TopHalf' ){
-                    insetArr[ 2 ] 
-                        = (
-                            parseInt(insetArr[ 2 ]) + ((100 - parseInt(insetArr[ 2 ])) / 2)
-                        ).toString();
-                } else if( shadowSection.type == 'RightHalf' ){
-                    insetArr[ 3 ] = (
-                        parseInt(insetArr[ 3 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
-                    ).toString();
-                } else if( shadowSection.type == 'BottomHalf' ){
-                    insetArr[ 0 ] = (
-                        parseInt(insetArr[ 0 ]) + ((100 - parseInt(insetArr[ 0 ])) / 2)
-                    ).toString();
-                } else if( shadowSection.type == 'LeftHalf' ){
-                    insetArr[ 1 ] = (
-                        parseInt(insetArr[ 1 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
-                    ).toString();
-                } else {
-                    insetArr[ 0 ] = '0';
-                    insetArr[ 1 ] = '100';
-                    insetArr[ 2 ] = '100';
-                    insetArr[ 3 ] = '0';
-                }
+                let insetArr = dragValue.targetSection.getShawdowSecionTypeByShadowSection( shadowSection, dragValue.afterDrag.dom );
 
                 let insetStr = `${insetArr[0]}% ${insetArr[1]}% ${insetArr[2]}% ${insetArr[3]}% `;
+
                 shadow.style.inset = insetStr;
 
-                dragValue.shadowSectionType = shadowSection.type;
+                dragValue.shadowSection = shadowSection;
+                e.preventDefault();
             }
         }
     }
@@ -350,17 +343,23 @@
     };
 
     let dragValue = {
+        // window dragStart 시작된 순간 해당 돔에 대한 정보
         beforeDrag: {
             id: '',
             parentId: '',
             splitPercentage: null,
             tree: null,
-            isFirst: null
+            isFirst: null,
+            selectedDom: null
         },
-        dragEnterDom: null,
+        // window dragEnter가 된 순간 돔에 대한 정보
+        afterDrag: {
+            dom: null
+        },
+        // window dragEnter가 된 순간 돔의 영역과 관련된 정보
         targetSection: null,
-        selectedDom: null,
-        shadowSectionType: null
+        // 현재 shadow의 section에 대한 값
+        shadowSection: {type:null}
     };
 
     let dragFunction = {

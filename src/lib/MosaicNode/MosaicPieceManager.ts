@@ -223,4 +223,8 @@ export class MosaicPieceManager<T extends TMosaicKey> {
 
         return this.mosaicWindows[ currentMosaicIndexSecond ];
     };
+
+    getNewTreeBySectionDirection( sectionDirection: string ){
+        
+    }
 }

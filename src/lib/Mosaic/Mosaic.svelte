@@ -75,6 +75,12 @@
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
             },
             mouseDown: function<T extends TMosaicKey>( e, mosaicWindow: MosaicNode<T> ){
+                console.log( 'mouseUp event@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@' );
+            },
+            mouseUp: function( e ){
+                console.log( 'mouseUp event@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@' );
+                let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
+                console.log( currentMosaicWindowDom );
             },
             /**
              * dragStart 이벤트는 기존의 돔을 조정하는 역할만 한다.
@@ -147,7 +153,9 @@
 
                 dragValue.dragEnterDom = currentMosaicWindowDom;
             },
-            dragEnd: function( e ){
+            dragEnd: function<T extends TMosaicKey>( e ){
+                let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
+                console.log(currentMosaicWindowDom);
                 console.log('drag end event');
                 let shadow = document.getElementById( 'drop-target-container' );
 
@@ -159,8 +167,31 @@
 
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
+
+                let node: TMosaicNode<T> = {
+                    id: uuid(),
+                    title: 'newWindow',
+                    parentNodeId: 'parentNodeid',
+                    direction: 'row',
+                    first: ( 0 as TMosaicNode<T> ),
+                    second: ( 0 as TMosaicNode<T> ),
+                    splitPercentage: {
+                        percentage: 50,
+                    }
+                };
+
+                // 바뀐 정보로 리렌더링이 일어날 수 있도록 배열을 새로 만든다.
+                
+
+                // 돔을 원상태로 복구 하는 코드
                 dragValue.beforeDrag.tree.splitPercentage.percentage = dragValue.beforeDrag.splitPercentage;
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+
+
+                console.log(dragValue.selectedDom.dataset);
+                console.log(dragValue.dragEnterDom.dataset)
+                console.log(dragValue.shadowSectionType);
+                console.log(dragValue);
             }
         },
         split:{
@@ -168,6 +199,7 @@
                 function mousemove(mousemoveEvent){
                     let mousePosition = 0;
                     // 비율을 이렇게 구하면 안됨.
+                    // 최상위에서 구한 splitPercentage의 비율은 하위에 있는 노드들과 다르기 때문
                     if( split.direction == 'row' ){
                         mousePosition = mousemoveEvent.clientX / document.body.offsetWidth * 100;
                     } else {
@@ -178,7 +210,6 @@
                     console.log(mousePosition);
                     let splitPercentageSubtract = currentTreeNode.splitPercentage.percentage - mousePosition;
                     
-                    // mosaicPieceManager.setTreeAndPiecesSplitPercentageByTree( currentTree, currentTreeNode.direction, splitPercentageSubtract );
                     setTreeAndPiecesSplitPercentageByTree( currentTree, currentTreeNode.direction, splitPercentageSubtract );
                 };
 
@@ -194,42 +225,6 @@
                 e.dataTransfer.dropEffect = 'move';
                 e.preventDefault();
                 console.log( 'shadow dragover event' );
-                return;
-                
-                let bodyWidth = document.body.clientWidth;
-                let headerHeight = document.getElementsByClassName( 'svelte-mosaic-header' )[0].clientHeight;
-                let bodyHeight = document.body.clientHeight - headerHeight;
-                let shadow = document.getElementById( 'drop-target-container' );
-                let shadowSection: Section = dragValue.targetSection.getShadowSectionByXY( e.clientX, e.clientY );
-                let insetArr = shadow.style.inset.split('%');
-                insetArr.pop();
-                console.log(insetArr);
-
-                if( shadowSection.type == 'TopHalf' ){
-                    insetArr[ 2 ] 
-                        = (
-                            parseInt(insetArr[ 2 ]) + ((100 - parseInt(insetArr[ 2 ])) / 2)
-                        ).toString();
-                } else if( shadowSection.type == 'RightHalf' ){
-                    insetArr[ 3 ] = (
-                        parseInt(insetArr[ 3 ]) + (100 - parseInt(insetArr[ 1 ])) / 2
-                    ).toString();
-                } else if( shadowSection.type == 'BottomHalf' ){
-                    insetArr[ 0 ] = (
-                        parseInt(insetArr[ 0 ]) + (100 - parseInt(insetArr[ 0 ])) / 2
-                    ).toString();
-                } else if( shadowSection.type == 'LeftHalf' ){
-                    insetArr[ 1 ] = (
-                        parseInt(insetArr[ 1 ]) + (100 - parseInt(insetArr[ 3 ])) / 2
-                    ).toString();
-                } else {
-                    
-                }
-
-                let insetStr = `${insetArr[0]}% ${insetArr[1]}% ${insetArr[2]}% ${insetArr[3]}% `;
-                shadow.style.inset = insetStr;
-
-                console.log(insetArr);
             },
             dragEnter( e ){
                 console.log( 'shadow dragEnter' );
@@ -240,10 +235,6 @@
                 let shadowSection: Section = dragValue.targetSection.getShadowSectionByXY( e.clientX, e.clientY );
                 let insetArr = shadow.style.inset.split('%');
                 insetArr.pop();
-                console.log(insetArr);
-
-                console.log(dragValue.dragEnterDom.dataset);
-                let isFirstCurrentDom = dragValue.dragEnterDom.dataset.isFirst;
 
                 if( shadowSection.type == 'TopHalf' ){
                     insetArr[ 2 ] 
@@ -251,29 +242,17 @@
                             parseInt(insetArr[ 2 ]) + ((100 - parseInt(insetArr[ 2 ])) / 2)
                         ).toString();
                 } else if( shadowSection.type == 'RightHalf' ){
-                    if( isFirstCurrentDom ){
-                        insetArr[ 3 ] = (
-                            parseInt(insetArr[ 3 ]) + ((100 - parseInt(insetArr[ 1 ])) / 2)
-                        ).toString();
-                    } else {
-                        insetArr[ 3 ] = (
-                            parseInt(insetArr[ 3 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
-                        ).toString();
-                    };
+                    insetArr[ 3 ] = (
+                        parseInt(insetArr[ 3 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
+                    ).toString();
                 } else if( shadowSection.type == 'BottomHalf' ){
                     insetArr[ 0 ] = (
                         parseInt(insetArr[ 0 ]) + ((100 - parseInt(insetArr[ 0 ])) / 2)
                     ).toString();
                 } else if( shadowSection.type == 'LeftHalf' ){
-                    if( isFirstCurrentDom ){
-                        insetArr[ 1 ] = (
-                            parseInt(insetArr[ 1 ]) + ((100 - parseInt(insetArr[ 1 ])) / 2)
-                        ).toString();
-                    } else {
-                        insetArr[ 1 ] = (
-                            parseInt(insetArr[ 1 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
-                        ).toString();
-                    }
+                    insetArr[ 1 ] = (
+                        parseInt(insetArr[ 1 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
+                    ).toString();
                 } else {
                     insetArr[ 0 ] = '0';
                     insetArr[ 1 ] = '100';
@@ -284,7 +263,7 @@
                 let insetStr = `${insetArr[0]}% ${insetArr[1]}% ${insetArr[2]}% ${insetArr[3]}% `;
                 shadow.style.inset = insetStr;
 
-                console.log(insetArr);
+                dragValue.shadowSectionType = shadowSection.type;
             }
         }
     }
@@ -340,8 +319,6 @@
             return (mosaicWindow.id == treeNode.id) && !mosaicWindow.isFirst;
         });
 
-        // let firstWindow = mosaicPieceManager.mosaicWindows[ currentMosaicIndexFirst ];
-        // let secondWindow = mosaicPieceManager.mosaicWindows[ currentMosaicIndexSecond ];
         let firstWindow = mosaicPieceManager.getFisrstMosaicWindowById( treeNode.id );
         let secondWindow = mosaicPieceManager.getSecondMosaicWindowById( treeNode.id );
 
@@ -559,5 +536,6 @@
     .mosaic {
         height: calc(100% - 60px);
         position: relative;
+        background-color: #abb3bf;
     }
 </style>

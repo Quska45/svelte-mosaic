@@ -37,7 +37,7 @@
 <style>
     .mosaic-split {
         position: absolute;
-        background-color: blueviolet;
+        /* background-color: blueviolet; */
     }
     .mosaic-split.row {
         margin: -2px;

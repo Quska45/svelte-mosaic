@@ -1,3 +1,10 @@
+export enum SectionDirection {
+    TopHalf = 'TopHalf',
+    RightHalf = 'RightHalf',
+    BottomHalf = 'BottomHalf',
+    LeftHalf = 'LeftHalf'
+};
+
 export enum SectionEnum {
     left = 'left',
     middle = 'middle',
@@ -10,7 +17,7 @@ export enum SectionListEnum {
     bottom = 'bottom'
 };
 
-export type TSection = SectionEnum | SectionListEnum | string;
+export type TSection = SectionEnum | SectionListEnum | string | SectionDirection;
 
 export class Section {
     x1: number = 0;

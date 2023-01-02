@@ -56,14 +56,26 @@
 
 <style>
   .mosaic-window {
-    border: 1px solid red;
+    background: #fefefe;
+    border: 1px solid #636363;
     margin: 3px;
+    border-radius: 4px;
     position: absolute;
+    text-align: center;
   }
   .mosaic-window-toolbar {
-    border-bottom: 1px solid red;
-    display: flex;
-    justify-content: space-between;
     cursor: move;
+    display: flex;
+    white-space: nowrap;
+    border-bottom: 1px solid #636363;
+    justify-content: space-between;
+    background: #fefefe;
+    padding: 4px 8px;
+    max-height: 20px;
+    align-items: center;
+  }
+  .mosaic-title-button {
+    width: 50%;
+    height: 5%;
   }
 </style>

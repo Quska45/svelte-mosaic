@@ -17,7 +17,7 @@
     import type { TMosaicKey } from '../types/types';
     import { Inset } from '../Common/Inset';
     import DropTargetContainer from '../DropTargetContainer/DropTargetContainer.svelte';
-    import { compute_rest_props } from 'svelte/internal';
+    import { compute_rest_props, globals } from 'svelte/internal';
     import { Section, TargetSection } from './TargetSection';
     
     export let exampleAppState: IExampleAppState;
@@ -63,16 +63,18 @@
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+                console.log('window split exampleAppState.currentNode', exampleAppState.currentNode);
             },
-            delete: function<T extends TMosaicKey>( parentNodeId: string ){
+            delete: function<T extends TMosaicKey>( parentNodeId: string, isFirst ){
                 let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, parentNodeId );
                 let currentTreeNode = ( currentTree as IMosaicParent<T> );
 
-                mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode )
+                mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, isFirst );
 
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+                console.log('window delete', exampleAppState.currentNode);
             },
             mouseDown: function<T extends TMosaicKey>( e, mosaicWindow: MosaicNode<T> ){
             },
@@ -186,7 +188,7 @@
                 dragValue.afterDrag.dom = currentMosaicWindowDom;
 
             },
-            dragEnd: function<T extends TMosaicKey>( e ){
+            dragEnd: function<T extends TMosaicKey>( e, test ){
                 let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
                 let shadow = document.getElementById( 'drop-target-container' );
 
@@ -211,27 +213,47 @@
                     }
                 };
 
+                let afterDragParentId = dragValue.afterDrag.dom.dataset.parentNodeId;
+                let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragParentId );
+                let currentTreeNode = ( currentTree as IMosaicParent<T> );
+                // let mosaicWindowDoms = document.getElementsByClassName( 'mosaic-window' );
+                // let parentMosaicWindowDom = [].find.call(mosaicWindowDoms, function( mosaicWindowDom ){
+                //     let dataset = mosaicWindowDom.dataset;
+                //     return dataset.parentNodeId == afterDragParentId;
+                // });
+                // console.log(parentMosaicWindowDom);
+                let parentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragParentId );
+                console.log('parentTree', parentTree);
+                console.log(mosaicPieceManager.mosaicWindows);
+                console.log(mosaicPieceManager.splits);
+                console.log(test);
+                console.log(exampleAppState.currentNode);
+
+
+                let currentWindowIndex;
+                // isFirst ? currentWindowIndex =  dragFunction.getFisrstMosaicWindowIndexById( currentTreeNode.id ) : currentWindowIndex =  dragFunction.getSecondMosaicWindowIndexById( currentTreeNode.id );
+
                 // 현재 shadow의 방향에 따라 트리를 재배열 한다.
                 if( dragValue.shadowSection.type == 'TopHalf' ){
                     let afterDragDataset = dragValue.afterDrag.dom.dataset;
                     node.direction = 'column';
+                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, dragValue.beforeDrag.isFirst );
                     // dragFunction.addNodeToTreeByValues( exampleAppState.currentNode, afterDragDataset.parentNodeId, afterDragDataset.nodeId, afterDragDataset.isFirst, node );
-                    dragFunction.deleteNodeToTreeByValues( exampleAppState.currentNode, dragValue.beforeDrag.parentId, dragValue.beforeDrag.id, dragValue.beforeDrag.isFirst, afterDragDataset.isFirst, node );
                 } else if( dragValue.shadowSection.type == 'RightHalf' ){
                     let afterDragDataset = dragValue.afterDrag.dom.dataset;
                     node.direction = 'row';
+                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, dragValue.beforeDrag.isFirst );
                     // dragFunction.addNodeToTreeByValues( exampleAppState.currentNode, afterDragDataset.parentNodeId, afterDragDataset.nodeId, afterDragDataset.isFirst, node );
-                    dragFunction.deleteNodeToTreeByValues( exampleAppState.currentNode, dragValue.beforeDrag.parentId, dragValue.beforeDrag.id, dragValue.beforeDrag.isFirst, afterDragDataset.isFirst, node );
                 } else if( dragValue.shadowSection.type == 'BottomHalf' ){
                     let afterDragDataset = dragValue.afterDrag.dom.dataset;
                     node.direction = 'column';
+                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, dragValue.beforeDrag.isFirst );
                     // dragFunction.addNodeToTreeByValues( exampleAppState.currentNode, afterDragDataset.parentNodeId, afterDragDataset.nodeId, afterDragDataset.isFirst, node );
-                    dragFunction.deleteNodeToTreeByValues( exampleAppState.currentNode, dragValue.beforeDrag.parentId, dragValue.beforeDrag.id, dragValue.beforeDrag.isFirst, afterDragDataset.isFirst, node );
                 } else if( dragValue.shadowSection.type == 'LeftHalf' ){
                     let afterDragDataset = dragValue.afterDrag.dom.dataset;
                     node.direction = 'row';
+                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, dragValue.beforeDrag.isFirst );
                     // dragFunction.addNodeToTreeByValues( exampleAppState.currentNode, afterDragDataset.parentNodeId, afterDragDataset.nodeId, afterDragDataset.isFirst, node );
-                    dragFunction.deleteNodeToTreeByValues( exampleAppState.currentNode, dragValue.beforeDrag.parentId, dragValue.beforeDrag.id, dragValue.beforeDrag.isFirst, afterDragDataset.isFirst, node );
                 } else {
                     dragValue.beforeDrag.tree.splitPercentage.percentage = dragValue.beforeDrag.splitPercentage;
                     mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );    
@@ -529,8 +551,6 @@
                     parentTreeNode.parentNodeId == parentNodeId 
                     && parentTreeNode.id == nodeId
                 ){
-                    console.log( treeNode );
-                    console.log( parentTreeNode );
                     let _node = ( node as IMosaicParent<T> );
                     _node.parentNodeId = parentTreeNode.id;
                     if( afterDragIsFirst ){
@@ -546,58 +566,6 @@
 
             dragFunction.addNodeToTreeByValues( treeNode.first, parentNodeId, nodeId, afterDragIsFirst, node, tree );
             dragFunction.addNodeToTreeByValues( treeNode.second, parentNodeId, nodeId, afterDragIsFirst, node, tree );
-        },
-        deleteNodeToTreeByValues<T extends TMosaicKey>( tree: TMosaicNode<T>, parentNodeId, nodeId, beforeDragIsFirst, node: TMosaicNode<T>, afterDragIsFirst, parentTree?: TMosaicNode<T> ){
-            let treeNode = ( tree as IMosaicParent<T> );
-            let parentTreeNode = ( parentTree as IMosaicParent<T> );
-
-            if( treeNode.id == nodeId ){
-                console.log(treeNode);
-                console.log(parentTreeNode);
-                if( !beforeDragIsFirst ){
-                    if( afterDragIsFirst ){
-                        ( treeNode.first as IMosaicParent<T> ).parentNodeId = parentTreeNode.id;
-                        parentTreeNode.second = treeNode.first;
-                        console.log('false / true', 1);
-                        // console.log('beforeDragIsFirst', beforeDragIsFirst);
-                        // console.log('afterDragIsFirst', afterDragIsFirst);
-                    } else {
-                        ( treeNode.first as IMosaicParent<T> ).parentNodeId = parentTreeNode.id;
-                        parentTreeNode.first = treeNode.first;
-                        console.log('false / false', 2);
-                        // console.log(2);
-                        // console.log('beforeDragIsFirst', beforeDragIsFirst);
-                        // console.log('afterDragIsFirst', afterDragIsFirst);
-                    }
-                } else {
-                    if( afterDragIsFirst ){
-                        ( treeNode.first as IMosaicParent<T> ).parentNodeId = parentTreeNode.id;
-                        parentTreeNode.second = treeNode.second;
-                        console.log('true / true', 3);
-                        // console.log(3);
-                        // console.log('beforeDragIsFirst', beforeDragIsFirst);
-                        // console.log('afterDragIsFirst', afterDragIsFirst);
-                    } else {
-                        console.log('true / false', 4);
-                        ( treeNode.first as IMosaicParent<T> ).parentNodeId = parentTreeNode.id;
-                        parentTreeNode.first = treeNode.second;
-                        // console.log(4);
-                        // console.log('beforeDragIsFirst', beforeDragIsFirst);
-                        // console.log('afterDragIsFirst', afterDragIsFirst);
-                    }
-                }
-
-                console.log( parentTreeNode );
-                console.log( 'at delete', exampleAppState.currentNode );
-            };
-
-            if( !isParent( tree ) ){
-                return;
-            };
-            
-
-            dragFunction.deleteNodeToTreeByValues( treeNode.first, parentNodeId, nodeId, beforeDragIsFirst, afterDragIsFirst, node, tree );
-            dragFunction.deleteNodeToTreeByValues( treeNode.second, parentNodeId, nodeId, beforeDragIsFirst, afterDragIsFirst, node, tree );
         }
     };
 </script>

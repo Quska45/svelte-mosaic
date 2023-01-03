@@ -147,23 +147,31 @@ export class MosaicPieceManager<T extends TMosaicKey> {
         return targetTree1 ? targetTree1 : targetTree2;
     };
 
-    changeParentTreeByNode( tree: TMosaicNode<T>, node: IMosaicParent<T> ){
+    changeParentTreeByNode( tree: TMosaicNode<T>, node: IMosaicParent<T>, isFirst ){
         if( !this.isParent( tree ) ){
             return null; 
         };
 
         if( ( tree.first as IMosaicParent<T>).id == node.id ){
-            tree.first = node.second;
+            if(isFirst){
+                tree.first = node.second;
+            } else {
+                tree.first = node.first;
+            }
             return;
         };
         
         if( ( tree.second as IMosaicParent<T>).id == node.id ){
-            tree.second = node.first;
+            if( isFirst ){
+                tree.second = node.second;
+            } else {
+                tree.second = node.first;
+            }
             return;
         };
         
-        this.changeParentTreeByNode( tree.first, node );
-        this.changeParentTreeByNode( tree.second, node );
+        this.changeParentTreeByNode( tree.first, node, isFirst );
+        this.changeParentTreeByNode( tree.second, node, isFirst );
     };
 
     getMosaicNodeObjByTree<T extends TMosaicKey>( tree: TMosaicNode<T>, parentTree: TMosaicNode<T>, isFirst: boolean ): MosaicNode<T>{

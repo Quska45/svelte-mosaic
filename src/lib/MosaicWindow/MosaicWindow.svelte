@@ -27,7 +27,7 @@
     display: { `${mosaicWindow.isDisplay}` }
   "
   on:dragover={( e ) => event.dragOver( e )}
-  on:dragend={( e ) => event.dragEnd( e )}
+  on:dragend={( e ) => event.dragEnd( e, mosaicPieceManager )}
   on:dragenter={( e ) => event.dragEnter( e )}
   on:drop={( e ) => event.drop( e )}
   data-node-id = { mosaicWindow.id }

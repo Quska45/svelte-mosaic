@@ -65,13 +65,10 @@ export class SectionList extends Section {
         let divideWidth = parseFloat(( substractWidth / 3 ).toFixed(3));
 
         if( this.x1 < x && ( this.x1 + divideWidth ) > x ){
-            // console.log( 'left' );
             return this.left;
         } else if( ( this.x1 + divideWidth ) < x && ( this.x1 + (divideWidth*2) ) > x ){
-            // console.log( 'middle' );
             return this.middle;
         } else {
-            // console.log( 'right' );
             return this.right;
         }
     };
@@ -104,13 +101,10 @@ export class TargetSection extends Section {
         let divideHeight = parseFloat(( substractHeight / 3 ).toFixed(3));
 
         if( this.y1 < y && this.y1 + divideHeight > y ){
-            // console.log( 'top' );
             return this.top;
         } else if( this.y1 + divideHeight < y && this.y1 + (divideHeight * 2) > y ){
-            // console.log( 'center' );
             return  this.center;
         } else {
-            // console.log( 'bottom' );
             return this.bottom;
         };
     };
@@ -155,57 +149,18 @@ export class TargetSection extends Section {
         let documnetWidth = document.body.clientWidth;
         let documnetHeight = document.body.clientHeight;
 
-        console.log( 'insetArr', insetArr );
-        console.log( 'shadowSection', shadowSection );
-
         let inset = {top:null, right: null, bottom: null, left: null};
         inset.top = ( (shadowSection.y1 - headerHeight) / (documnetHeight - headerHeight) * 100 );
         inset.right = ( 100 - (shadowSection.x2 / documnetWidth * 100) );
         inset.bottom = ( 100 - ((shadowSection.y2 - headerHeight) / (documnetHeight - headerHeight) * 100) );
         inset.left = ( shadowSection.x1 / documnetWidth * 100 );
-        console.log(inset);
 
-        // if( shadowSection.type == 'TopHalf' ){
-        //     insetArr[ 2 ] 
-        //         = (
-        //             parseInt(insetArr[ 2 ]) + ((100 - parseInt(insetArr[ 2 ])) / 2)
-        //         ).toString();
-        // } else if( shadowSection.type == 'RightHalf' ){
-        //     insetArr[ 3 ] = (
-        //         parseInt(insetArr[ 3 ]) + ((100 - parseInt(insetArr[ 1 ])) / 2)
-        //     ).toString();
-        // } else if( shadowSection.type == 'BottomHalf' ){
-        //     insetArr[ 0 ] = (
-        //         parseInt(insetArr[ 0 ]) + ((100 - parseInt(insetArr[ 0 ])) / 2)
-        //     ).toString();
-        // } else if( shadowSection.type == 'LeftHalf' ){
-        //     insetArr[ 1 ] = (
-        //         parseInt(insetArr[ 1 ]) + ((100 - parseInt(insetArr[ 3 ])) / 2)
-        //     ).toString();
-        // } else {
-        //     insetArr[ 0 ] = '0';
-        //     insetArr[ 1 ] = '100';
-        //     insetArr[ 2 ] = '100';
-        //     insetArr[ 3 ] = '0';
-        // }
-
-
-        if( shadowSection.type == 'TopHalf' ){
-            insetArr[ 0 ] = inset.top;
-            insetArr[ 1 ] = inset.right;
-            insetArr[ 2 ] = inset.bottom;
-            insetArr[ 3 ] = inset.left;
-        } else if( shadowSection.type == 'RightHalf' ){
-            insetArr[ 0 ] = inset.top;
-            insetArr[ 1 ] = inset.right;
-            insetArr[ 2 ] = inset.bottom;
-            insetArr[ 3 ] = inset.left;
-        } else if( shadowSection.type == 'BottomHalf' ){
-            insetArr[ 0 ] = inset.top;
-            insetArr[ 1 ] = inset.right;
-            insetArr[ 2 ] = inset.bottom;
-            insetArr[ 3 ] = inset.left;
-        } else if( shadowSection.type == 'LeftHalf' ){
+        if( 
+            shadowSection.type == 'TopHalf' 
+            || shadowSection.type == 'RightHalf'
+            || shadowSection.type == 'BottomHalf'
+            || shadowSection.type == 'LeftHalf'
+        ){
             insetArr[ 0 ] = inset.top;
             insetArr[ 1 ] = inset.right;
             insetArr[ 2 ] = inset.bottom;

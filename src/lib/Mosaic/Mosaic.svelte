@@ -17,7 +17,7 @@
     import type { TMosaicKey } from '../types/types';
     import { Inset } from '../Common/Inset';
     import DropTargetContainer from '../DropTargetContainer/DropTargetContainer.svelte';
-    import { compute_rest_props, globals } from 'svelte/internal';
+    import { compute_rest_props, globals, identity } from 'svelte/internal';
     import { Section, TargetSection } from './TargetSection';
     
     export let exampleAppState: IExampleAppState;
@@ -51,7 +51,7 @@
                 let currentTreeNode = ( currentTree as IMosaicParent<T> );
 
                 let currentWindowIndex;
-                isFirst ? currentWindowIndex =  dragFunction.getFisrstMosaicWindowIndexById( currentTreeNode.id ) : currentWindowIndex =  dragFunction.getSecondMosaicWindowIndexById( currentTreeNode.id );
+                isFirst ? currentWindowIndex =  dragFunction.getFirstMosaicWindowIndexById( currentTreeNode.id ) : currentWindowIndex =  dragFunction.getSecondMosaicWindowIndexById( currentTreeNode.id );
 
                 let currentWindow = mosaicPieceManager.mosaicWindows[ currentWindowIndex ];
                 let width = (100 - (currentWindow.splitPercentage.inset.left + currentWindow.splitPercentage.inset.right)) /2;
@@ -63,7 +63,6 @@
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
-                console.log('window split exampleAppState.currentNode', exampleAppState.currentNode);
             },
             delete: function<T extends TMosaicKey>( parentNodeId: string, isFirst ){
                 let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, parentNodeId );
@@ -74,7 +73,6 @@
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
-                console.log('window delete', exampleAppState.currentNode);
             },
             mouseDown: function<T extends TMosaicKey>( e, mosaicWindow: MosaicNode<T> ){
             },
@@ -89,7 +87,7 @@
             */
             dragStart: function<T extends TMosaicKey>( e, mosaicWindow: MosaicNode<T> ){
                 let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, mosaicWindow.id );
-                let currentWindowIndex = mosaicWindow.isFirst ? dragFunction.getFisrstMosaicWindowIndexById( mosaicWindow.id ) : dragFunction.getSecondMosaicWindowIndexById( mosaicWindow.id );
+                let currentWindowIndex = mosaicWindow.isFirst ? dragFunction.getFirstMosaicWindowIndexById( mosaicWindow.id ) : dragFunction.getSecondMosaicWindowIndexById( mosaicWindow.id );
                 let currentWindow = mosaicPieceManager.mosaicWindows[ currentWindowIndex ];
 
                 // e.target.parentElement.parentElement.style.opacity = 0;
@@ -121,6 +119,7 @@
             dragOver: function( e ){
                 let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
                 dragValue.beforeDrag.selectedDom.style.zIndex = -1;
+                dragValue.beforeDrag.selectedDom.style.display = 'none';
                 
                 let dataset = currentMosaicWindowDom.dataset;
                 // 드래그를 시작했을 때 선택됨 dom에 dragenter 되면 종료
@@ -156,6 +155,7 @@
             dragEnter: function( e ){
                 let currentMosaicWindowDom = dragFunction.getMosaicWindowDomByDom( e.target );
                 dragValue.beforeDrag.selectedDom.style.zIndex = -1;
+                dragValue.beforeDrag.selectedDom.style.display = 'none';
                 
                 let dataset = currentMosaicWindowDom.dataset;
                 // 드래그를 시작했을 때 선택됨 dom에 dragenter 되면 종료
@@ -194,12 +194,10 @@
 
                 dragValue.beforeDrag.selectedDom.style.zIndex = 0;
                 dragValue.beforeDrag.selectedDom.style.opacity = 1;
+                dragValue.beforeDrag.selectedDom.style.display = 'block';
                 
                 shadow.style.display = 'none';
                 shadow.style.zIndex = '-1';
-
-                mosaicPieceManager.mosaicWindows = [];
-                mosaicPieceManager.splits = [];
 
                 let node: TMosaicNode<T> = {
                     id: uuid(),
@@ -213,76 +211,138 @@
                     }
                 };
 
-                let afterDragParentId = dragValue.afterDrag.dom.dataset.parentNodeId;
-                let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragParentId );
-                let currentTreeNode = ( currentTree as IMosaicParent<T> );
-                // let mosaicWindowDoms = document.getElementsByClassName( 'mosaic-window' );
-                // let parentMosaicWindowDom = [].find.call(mosaicWindowDoms, function( mosaicWindowDom ){
-                //     let dataset = mosaicWindowDom.dataset;
-                //     return dataset.parentNodeId == afterDragParentId;
-                // });
-                // console.log(parentMosaicWindowDom);
-                let parentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragParentId );
-                console.log('parentTree', parentTree);
-                console.log(mosaicPieceManager.mosaicWindows);
-                console.log(mosaicPieceManager.splits);
-                console.log(test);
-                console.log(exampleAppState.currentNode);
+                let afterDragId = dragValue.afterDrag.dom.dataset.nodeId;
+                let beforDragId = dragValue.beforeDrag.id;
+                let beforDragTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, dragValue.beforeDrag.id );
+                let beforDragTreeNode = ( beforDragTree as IMosaicParent<T> );
 
-
-                let currentWindowIndex;
-                // isFirst ? currentWindowIndex =  dragFunction.getFisrstMosaicWindowIndexById( currentTreeNode.id ) : currentWindowIndex =  dragFunction.getSecondMosaicWindowIndexById( currentTreeNode.id );
+                let afterDragTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragId );
+                let afterDragTreeNode = ( afterDragTree as IMosaicParent<T> );
 
                 // 현재 shadow의 방향에 따라 트리를 재배열 한다.
                 if( dragValue.shadowSection.type == 'TopHalf' ){
                     let afterDragDataset = dragValue.afterDrag.dom.dataset;
                     node.direction = 'column';
-                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, dragValue.beforeDrag.isFirst );
-                    // dragFunction.addNodeToTreeByValues( exampleAppState.currentNode, afterDragDataset.parentNodeId, afterDragDataset.nodeId, afterDragDataset.isFirst, node );
+
+                    if( afterDragId == beforDragId ){
+                        afterDragTreeNode.splitPercentage.percentage = 50;
+                        afterDragTreeNode.direction = 'column';
+                        mosaicPieceManager.mosaicWindows = [];
+                        mosaicPieceManager.splits = [];
+                        mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+                        return;
+                    };
+
+                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, beforDragTreeNode, dragValue.beforeDrag.isFirst );
+
+                    let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragDataset.nodeId );
+                    let currentTreeNode = ( currentTree as IMosaicParent<T> );
+
+                    node.parentNodeId = afterDragDataset.nodeId;
+                    JSON.parse(afterDragDataset.isFirst) ? currentTreeNode.first = node : currentTreeNode.second = node;
                 } else if( dragValue.shadowSection.type == 'RightHalf' ){
                     let afterDragDataset = dragValue.afterDrag.dom.dataset;
                     node.direction = 'row';
-                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, dragValue.beforeDrag.isFirst );
-                    // dragFunction.addNodeToTreeByValues( exampleAppState.currentNode, afterDragDataset.parentNodeId, afterDragDataset.nodeId, afterDragDataset.isFirst, node );
+
+                    if( afterDragId == beforDragId ){
+                        afterDragTreeNode.splitPercentage.percentage = 50;
+                        afterDragTreeNode.direction = 'row';
+                        mosaicPieceManager.mosaicWindows = [];
+                        mosaicPieceManager.splits = [];
+                        mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+                        return;
+                    };
+
+                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, beforDragTreeNode, dragValue.beforeDrag.isFirst );
+                    
+                    let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragDataset.nodeId );
+                    let currentTreeNode = ( currentTree as IMosaicParent<T> );
+                        
+                    node.parentNodeId = afterDragDataset.nodeId;
+                    JSON.parse(afterDragDataset.isFirst) ? currentTreeNode.first = node : currentTreeNode.second = node;
                 } else if( dragValue.shadowSection.type == 'BottomHalf' ){
                     let afterDragDataset = dragValue.afterDrag.dom.dataset;
                     node.direction = 'column';
-                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, dragValue.beforeDrag.isFirst );
-                    // dragFunction.addNodeToTreeByValues( exampleAppState.currentNode, afterDragDataset.parentNodeId, afterDragDataset.nodeId, afterDragDataset.isFirst, node );
+
+                    if( afterDragId == beforDragId ){
+                        afterDragTreeNode.splitPercentage.percentage = 50;
+                        afterDragTreeNode.direction = 'column';
+                        mosaicPieceManager.mosaicWindows = [];
+                        mosaicPieceManager.splits = [];
+                        mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+                        return;
+                    };
+
+                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, beforDragTreeNode, dragValue.beforeDrag.isFirst );
+                    
+                    let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragDataset.nodeId );
+                    let currentTreeNode = ( currentTree as IMosaicParent<T> );
+                        
+                    node.parentNodeId = afterDragDataset.nodeId;
+                    JSON.parse(afterDragDataset.isFirst) ? currentTreeNode.first = node : currentTreeNode.second = node;
                 } else if( dragValue.shadowSection.type == 'LeftHalf' ){
                     let afterDragDataset = dragValue.afterDrag.dom.dataset;
                     node.direction = 'row';
-                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, currentTreeNode, dragValue.beforeDrag.isFirst );
-                    // dragFunction.addNodeToTreeByValues( exampleAppState.currentNode, afterDragDataset.parentNodeId, afterDragDataset.nodeId, afterDragDataset.isFirst, node );
+
+                    if( afterDragId == beforDragId ){
+                        afterDragTreeNode.splitPercentage.percentage = 50;
+                        afterDragTreeNode.direction = 'row';
+                        mosaicPieceManager.mosaicWindows = [];
+                        mosaicPieceManager.splits = [];
+                        mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
+                        return;
+                    };
+
+                    mosaicPieceManager.changeParentTreeByNode( exampleAppState.currentNode, beforDragTreeNode, dragValue.beforeDrag.isFirst );
+                    
+                    let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, afterDragDataset.nodeId );
+                    let currentTreeNode = ( currentTree as IMosaicParent<T> );
+                        
+                    node.parentNodeId = afterDragDataset.nodeId;
+                    JSON.parse(afterDragDataset.isFirst) ? currentTreeNode.first = node : currentTreeNode.second = node;
                 } else {
                     dragValue.beforeDrag.tree.splitPercentage.percentage = dragValue.beforeDrag.splitPercentage;
-                    mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );    
                 };
 
                 mosaicPieceManager.mosaicWindows = [];
                 mosaicPieceManager.splits = [];
                 mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
-                // 돔을 원상태로 복구 하는 코드
-                // dragValue.beforeDrag.tree.splitPercentage.percentage = dragValue.beforeDrag.splitPercentage;
-                // mosaicPieceManager.makeWindowsAndSplitsBySearchTree( exampleAppState.currentNode );
             }
         },
         split:{
             positionChange: function<T extends TMosaicKey>( e, split: SplitTs<T> ){
-                function mousemove(mousemoveEvent){
+                function mousemove(mousemoveEvent: MouseEvent){
+                    let headerHeight = document.getElementsByClassName( 'svelte-mosaic-header' )[0].clientHeight;
                     let mousePosition = 0;
                     // 비율을 이렇게 구하면 안됨.
                     // 최상위에서 구한 splitPercentage의 비율은 하위에 있는 노드들과 다르기 때문
                     if( split.direction == 'row' ){
                         mousePosition = mousemoveEvent.clientX / document.body.offsetWidth * 100;
                     } else {
-                        mousePosition = mousemoveEvent.clientY / (document.body.offsetHeight + 60) * 100;
-                    }
+                        mousePosition = mousemoveEvent.clientY / document.body.offsetHeight * 100;
+                    };
+
                     let currentTree = mosaicPieceManager.getTreeByNodeId( exampleAppState.currentNode, split.id );
                     let currentTreeNode = ( currentTree as IMosaicParent<T> );
-                    let splitPercentageSubtract = currentTreeNode.splitPercentage.percentage - mousePosition;
+                    let splitPercentageSubtract = 0;
                     
-                    setTreeAndPiecesSplitPercentageByTree( currentTree, currentTreeNode.direction, splitPercentageSubtract );
+                    if( splitMouseValue.id == '' || splitMouseValue.id != split.id ){
+                        splitMouseValue.id = split.id;
+                        splitMouseValue.percentage = mousePosition;
+                    };
+
+                    splitPercentageSubtract = splitMouseValue.percentage - mousePosition;
+
+                    if( splitMouseValue.id == split.id ){
+                        splitMouseValue.percentage = mousePosition;
+                    };
+
+                    if( currentTreeNode.splitPercentage.percentage - splitPercentageSubtract > 20 && currentTreeNode.splitPercentage.percentage - splitPercentageSubtract < 80 ){
+                        currentTreeNode.splitPercentage.percentage -= splitPercentageSubtract;
+                    };
+
+                    setTreeAndPiecesSplitPercentageByTree2( currentTree, currentTreeNode.direction, splitPercentageSubtract );
+                    // setTreeAndPiecesSplitPercentageByTree( currentTree, currentTreeNode.direction, splitPercentageSubtract );
                 };
 
                 window.addEventListener('mousemove', mousemove);
@@ -300,7 +360,7 @@
             dragEnter( e ){
                 let shadow = document.getElementById( 'drop-target-container' );
                 let shadowSection: Section = dragValue.targetSection.getShadowSectionByXY( e.clientX, e.clientY );
-                let insetArr = dragValue.targetSection.getShawdowSecionTypeByShadowSection( shadowSection, dragValue.afterDrag.dom );
+                let insetArr = dragValue.targetSection.getShawdowSecionInsetByShadowSection( shadowSection, dragValue.afterDrag.dom );
 
                 let insetStr = `${insetArr[0]}% ${insetArr[1]}% ${insetArr[2]}% ${insetArr[3]}% `;
 
@@ -316,6 +376,68 @@
         return (node as IMosaicParent<T>).id != null;
     };
 
+    function setTreeAndPiecesSplitPercentageByTree2<T extends TMosaicKey>( tree: TMosaicNode<T>, direction: TMosaicDirection, splitPercentageSubtract: number, parentTree?:TMosaicNode<T>, isFirst? :boolean ){
+        if( !isParent( tree ) ){
+            return;
+        };
+
+        let treeNode = ( tree as IMosaicParent<T> );
+
+        if( parentTree ){
+            let parentTreeNode = ( parentTree as IMosaicParent<T> );
+            if( isFirst ){
+                treeNode.splitPercentage.inset = parentTreeNode.splitPercentage.firstInset;
+            } else {
+                treeNode.splitPercentage.inset = parentTreeNode.splitPercentage.secondInset;
+            }
+        }
+
+        // splitPercentageSubtract 값 확인 해보는 용도. 이걸로 뭔가 처리 해줘야 할듯.
+        // if( 
+        //     (treeNode.splitPercentage.percentage - splitPercentageSubtract) > 45 ||
+        //     (treeNode.splitPercentage.percentage - splitPercentageSubtract) < 55
+        //     ){
+        //     console.log(tree)
+        //     console.log('@@@@@@@@@@@@@@@@@@@@@@@@');
+        //     console.log(treeNode.splitPercentage.percentage);
+        //     console.log(treeNode.splitPercentage.percentage + splitPercentageSubtract);
+        // }
+
+        let firstAndSecondInset = Inset.getFirstAndSecondInsetByTree( tree );
+        treeNode.splitPercentage.firstInset = firstAndSecondInset.first;
+        treeNode.splitPercentage.secondInset = firstAndSecondInset.second;
+
+        let currentSplitIndex = mosaicPieceManager.splits.findIndex(function( split ){
+            return split.id == treeNode.id;
+        });
+        let currentSplit = mosaicPieceManager.splits[ currentSplitIndex ];
+        currentSplit.splitPercentage.inset = treeNode.splitPercentage.secondInset;
+        
+        // second 인 window 찾아옴
+        // '버그?' 주석 참고. 어쩔 수 없이 구해야 하는 값임
+        let currentMosaicIndexSecond = mosaicPieceManager.mosaicWindows.findIndex(function( mosaicWindow ){
+            return (mosaicWindow.id == treeNode.id) && !mosaicWindow.isFirst;
+        });
+
+        let firstWindow = mosaicPieceManager.getFisrstMosaicWindowById( treeNode.id );
+        let secondWindow = mosaicPieceManager.getSecondMosaicWindowById( treeNode.id );
+
+        // firstWindow
+        if( firstWindow ){
+            firstWindow.splitPercentage.inset = treeNode.splitPercentage.firstInset;
+        }
+
+        // secondWindow
+        if( secondWindow ){
+            // 완전히 동일한 참조값을 변경 했을 때 실제 돔에 렌더링이 일어나지 않음
+            // 버그? - 이게 어떻게 안될 수가 있는 거지? 진짜 버그 아님?
+            mosaicPieceManager.mosaicWindows[ currentMosaicIndexSecond ].splitPercentage.inset = treeNode.splitPercentage.secondInset;
+        }
+
+        setTreeAndPiecesSplitPercentageByTree2( treeNode.first, direction, splitPercentageSubtract, tree, true );
+        setTreeAndPiecesSplitPercentageByTree2( treeNode.second, direction, splitPercentageSubtract, tree, false );
+    };
+
     function setTreeAndPiecesSplitPercentageByTree<T extends TMosaicKey>( tree: TMosaicNode<T>, direction: TMosaicDirection, splitPercentageSubtract: number, parentTree?:TMosaicNode<T>, isFirst? :boolean ){
         if( !isParent( tree ) ){
             return;
@@ -323,6 +445,7 @@
 
         let treeNode = ( tree as IMosaicParent<T> );
 
+        // 재귀가 두번째 호출 되는 시점 부터 노드들의 inset이 바뀔 수 있도록 한다.
         if( parentTree ){
             let parentTreeNode = ( parentTree as IMosaicParent<T> );
             if( isFirst ){
@@ -379,18 +502,18 @@
             if( direction == secondWindow.direction ){
                 secondWindow.splitPercentage.percentage += splitPercentageSubtract;
             };
-            // 버그? - 이게 어떻게 안될 수가 있는 거지? 진짜 버그 아님?
             // 완전히 동일한 참조값을 변경 했을 때 실제 돔에 렌더링이 일어나지 않음
-            // secondWindow.splitPercentage.inset = treeNode.splitPercentage.secondInset;
-            // secondWindow.splitPercentage.inset.top = treeNode.splitPercentage.secondInset.top;
-            // secondWindow.splitPercentage.inset.right = treeNode.splitPercentage.secondInset.right;
-            // secondWindow.splitPercentage.inset.bottom = treeNode.splitPercentage.secondInset.bottom;
-            // secondWindow.splitPercentage.inset.left = treeNode.splitPercentage.secondInset.left;
+            // 버그? - 이게 어떻게 안될 수가 있는 거지? 진짜 버그 아님?
             mosaicPieceManager.mosaicWindows[ currentMosaicIndexSecond ].splitPercentage.inset = treeNode.splitPercentage.secondInset;
         }
 
         setTreeAndPiecesSplitPercentageByTree( treeNode.first, direction, splitPercentageSubtract, tree, true );
         setTreeAndPiecesSplitPercentageByTree( treeNode.second, direction, splitPercentageSubtract, tree, false );
+    };
+
+    let splitMouseValue = {
+        id: '',
+        percentage: 0
     };
 
     let dragValue = {
@@ -510,7 +633,7 @@
             dragFunction.setPiecesSplitPercentageByTree( treeNode.first, null, true, tree );
             dragFunction.setPiecesSplitPercentageByTree( treeNode.second, null, false, tree );
         },
-        getFisrstMosaicWindowIndexById( id: string ){
+        getFirstMosaicWindowIndexById( id: string ){
             let currentMosaicIndexFirst = mosaicPieceManager.mosaicWindows.findIndex(function( mosaicWindow ){
                 return (mosaicWindow.id == id) && mosaicWindow.isFirst;
             });
@@ -558,7 +681,6 @@
                     } else {
                         parentTreeNode.second = node;
                     }
-                    console.log( 'at add', exampleAppState.currentNode );
                 };
                 return;
             };

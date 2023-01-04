@@ -140,7 +140,7 @@ export class TargetSection extends Section {
         };
     };
 
-    getShawdowSecionTypeByShadowSection( shadowSection: Section, currentDom,  ){
+    getShawdowSecionInsetByShadowSection( shadowSection: Section, currentDom,  ){
         let shadow = document.getElementById( 'drop-target-container' );
         let insetArr = shadow.style.inset.split('%');
         insetArr.pop();

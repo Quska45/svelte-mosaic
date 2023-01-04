@@ -157,8 +157,7 @@ export class MosaicPieceManager<T extends TMosaicKey> {
                 tree.first = node.second;
             } else {
                 tree.first = node.first;
-            }
-            return;
+            };
         };
         
         if( ( tree.second as IMosaicParent<T>).id == node.id ){
@@ -166,8 +165,7 @@ export class MosaicPieceManager<T extends TMosaicKey> {
                 tree.second = node.second;
             } else {
                 tree.second = node.first;
-            }
-            return;
+            };
         };
         
         this.changeParentTreeByNode( tree.first, node, isFirst );

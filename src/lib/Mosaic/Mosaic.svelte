@@ -1,10 +1,6 @@
 <script lang="ts">
     import { v4 as uuid } from 'uuid';
     import { writable } from 'svelte/store'
-    import {
-        SplitEvent,
-        WindowEvent
-    } from './Event'
     import MosaicWindow from "../MosaicWindow/MosaicWindow.svelte";
     import Split from "../Split/Split.svelte";
     import type { Split as SplitTs } from "../Split/Split";
